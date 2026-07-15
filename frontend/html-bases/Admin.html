@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo · La Maison</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #e8d5aa;
+            --primary-deep: #d4bf8c;
+            --primary-light: #f2e6cf;
+            --bg-dark: #2b2418;
+            --text-primary: #2b2418;
+            --text-secondary: #5c5342;
+            --text-muted: #8b8068;
+            --gold: #b4943f;
+            --gold-dark: #9a7e2e;
+            --danger: #c0392b;
+            --success: #27ae60;
+            --border: rgba(180, 148, 63, 0.3);
+            --radius: 6px;
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            --font-body: 'Cormorant Garamond', Georgia, serif;
+            --font-heading: 'Playfair Display', serif;
+            --font-ui: 'Lato', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: #f9f2e2;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 30px 20px;
+        }
+
+        .admin-container {
+            max-width: 1100px;
+            width: 100%;
+            background: #fffdf7;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .admin-header {
+            background: var(--primary);
+            padding: 30px 40px 20px;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .admin-header h1 {
+            font-family: var(--font-heading);
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            color: var(--bg-dark);
+            margin-bottom: 4px;
+        }
+
+        .admin-header p {
+            font-style: italic;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            font-size: 0.95rem;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--primary-light);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px 20px;
+            font-family: var(--font-ui);
+            font-size: 0.8rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 600;
+            transition: all 0.25s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--bg-dark);
+            border-bottom-color: var(--gold);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            color: var(--bg-dark);
+        }
+
+        .tab-content {
+            padding: 30px 40px;
+            min-height: 450px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .section-list,
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 25px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+            transition: box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+            color: var(--bg-dark);
+            margin-bottom: 4px;
+        }
+
+        .card-meta {
+            font-family: var(--font-ui);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            font-family: var(--font-ui);
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            background: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--bg-dark);
+            color: #fff;
+            border-color: var(--bg-dark);
+        }
+
+        .btn-primary:hover {
+            background: #3f3628;
+        }
+
+        .btn-outline {
+            border: 1px solid var(--gold-dark);
+            color: var(--gold-dark);
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: rgba(180, 148, 63, 0.08);
+        }
+
+        .btn-danger {
+            background: #fff;
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: #fdedec;
+        }
+
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 0.65rem;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-family: var(--font-ui);
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            background: #fffdf7;
+            transition: border 0.2s;
+            color: var(--text-primary);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(180, 148, 63, 0.1);
+        }
+
+        /* Estilização do upload de arquivo */
+        .file-upload-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .file-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary-light);
+            border: 1px solid var(--gold-dark);
+            color: var(--gold-dark);
+            padding: 8px 18px;
+            border-radius: var(--radius);
+            font-family: var(--font-ui);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .file-upload-btn:hover {
+            background: rgba(180, 148, 63, 0.1);
+            border-color: var(--gold);
+        }
+
+        .file-upload-btn i {
+            font-style: normal;
+            font-size: 1rem;
+        }
+
+        .file-name {
+            font-family: var(--font-ui);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            background: #fdfaf2;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .file-name:empty::before {
+            content: "Nenhum arquivo selecionado";
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        input[type="file"] {
+            position: absolute;
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: #fffdf7;
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+        }
+
+        .modal h2 {
+            font-family: var(--font-heading);
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: var(--bg-dark);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--bg-dark);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-family: var(--font-ui);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        @media (max-width: 700px) {
+            .admin-container {
+                border-radius: 0;
+            }
+            .tab-content {
+                padding: 20px;
+            }
+            .card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .card-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>La Maison · Painel</h1>
+            <p>Gerencie sessões, produtos e vídeos</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="sessoes">📂 Sessões</button>
+            <button class="tab-btn" data-tab="produtos">🍽️ Produtos</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Aba Sessões -->
+            <div class="tab-pane active" id="tab-sessoes">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <h2 style="font-family: var(--font-heading); font-size: 1.5rem;">Sessões do Cardápio</h2>
+                    <button class="btn btn-primary" id="btnNovaSessao">+ Nova Sessão</button>
+                </div>
+                <div class="section-list" id="listaSessoes"></div>
+            </div>
+
+            <!-- Aba Produtos -->
+            <div class="tab-pane" id="tab-produtos">
+                <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 25px; flex-wrap: wrap;">
+                    <h2 style="font-family: var(--font-heading); font-size: 1.5rem;">Produtos</h2>
+                    <select id="filtroSessao" style="width: auto; min-width: 200px;"></select>
+                    <button class="btn btn-primary" id="btnNovoProduto">+ Novo Produto</button>
+                </div>
+                <div class="product-list" id="listaProdutos"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Sessão -->
+    <div class="modal-overlay" id="modalSessao">
+        <div class="modal">
+            <h2 id="modalSessaoTitulo">Nova Sessão</h2>
+            <form id="formSessao">
+                <input type="hidden" id="sessaoId" value="">
+                <div class="form-group">
+                    <label>Nome da Sessão</label>
+                    <input type="text" id="sessaoNome" required placeholder="Ex: Pratos Principais">
+                </div>
+                <div class="form-group">
+                    <label>Slug (identificador único)</label>
+                    <input type="text" id="sessaoSlug" required placeholder="Ex: pratos-principais">
+                </div>
+                <div class="form-group">
+                    <label>Vídeo da Sessão</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="sessaoVideoFile" accept="video/mp4,video/webm,video/ogg">
+                        <label for="sessaoVideoFile" class="file-upload-btn">
+                            <i>🎬</i> Escolher arquivo
+                        </label>
+                        <span class="file-name" id="videoFileName"></span>
+                    </div>
+                    <small style="color: var(--text-muted);">Formatos aceitos: MP4, WebM, OGG</small>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" id="btnCancelarSessao">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">💾 Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Produto -->
+    <div class="modal-overlay" id="modalProduto">
+        <div class="modal">
+            <h2 id="modalProdutoTitulo">Novo Produto</h2>
+            <form id="formProduto">
+                <input type="hidden" id="produtoId" value="">
+                <div class="form-group">
+                    <label>Sessão</label>
+                    <select id="produtoSessao" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Nome do Produto</label>
+                    <input type="text" id="produtoNome" required placeholder="Ex: Risoto de Cogumelos">
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea id="produtoDescricao" rows="3" placeholder="Descrição curta..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Preço (R$)</label>
+                    <input type="number" id="produtoPreco" step="0.01" min="0" required placeholder="89.90">
+                </div>
+                <div class="form-group">
+                    <label>Tags (separadas por vírgula)</label>
+                    <input type="text" id="produtoTags" placeholder="Trufado, Vegetariano">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" id="btnCancelarProduto">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">💾 Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        (function() {
+            // ========== SIMULAÇÃO DE API ==========
+            const API_BASE = '/api';
+
+            let sessoes = [
+                { id: '1', nome: 'Pratos Principais', slug: 'pratos', videoUrl: 'https://videos.pexels.com/video-files/4761687/4761687-sd_640_360_24fps.mp4' },
+                { id: '2', nome: 'Entradas', slug: 'entradas', videoUrl: 'https://videos.pexels.com/video-files/4065393/4065393-sd_640_360_25fps.mp4' },
+                { id: '3', nome: 'Sobremesas', slug: 'sobremesas', videoUrl: 'https://videos.pexels.com/video-files/4107551/4107551-sd_640_360_25fps.mp4' }
+            ];
+
+            let produtos = [
+                { id: '101', sessaoId: '1', nome: 'Risoto de Cogumelos Trufados', descricao: 'Arroz arbóreo cremoso com mix de cogumelos selvagens', preco: 89.00, tags: ['Trufado', 'Vegetariano'] },
+                { id: '102', sessaoId: '1', nome: 'Filé Mignon ao Molho Madeira', descricao: 'Medalhão grelhado, molho madeira envelhecido', preco: 112.00, tags: ['Clássico', 'Premium'] },
+                { id: '103', sessaoId: '2', nome: 'Carpaccio de Carne', descricao: 'Finas lâminas de filé mignon com rúcula', preco: 48.00, tags: ['Clássico'] },
+                { id: '104', sessaoId: '3', nome: 'Tiramisù Clássico', descricao: 'Camadas de mascarpone e café', preco: 38.00, tags: ['Clássico'] },
+            ];
+
+            async function apiGetSessoes() { return [...sessoes]; }
+            async function apiGetProdutos() { return [...produtos]; }
+            async function apiSalvarSessao(dados, videoFile) {
+                if (dados.id) {
+                    const idx = sessoes.findIndex(s => s.id === dados.id);
+                    if (idx !== -1) {
+                        sessoes[idx] = { ...sessoes[idx], ...dados };
+                        if (videoFile) sessoes[idx].videoUrl = URL.createObjectURL(videoFile);
+                    }
+                } else {
+                    const nova = { id: Date.now().toString(), ...dados, videoUrl: videoFile ? URL.createObjectURL(videoFile) : '' };
+                    sessoes.push(nova);
+                }
+                return { sucesso: true };
+            }
+            async function apiExcluirSessao(id) {
+                sessoes = sessoes.filter(s => s.id !== id);
+                produtos = produtos.filter(p => p.sessaoId !== id);
+                return { sucesso: true };
+            }
+            async function apiSalvarProduto(dados) {
+                if (dados.id) {
+                    const idx = produtos.findIndex(p => p.id === dados.id);
+                    if (idx !== -1) produtos[idx] = { ...produtos[idx], ...dados };
+                } else {
+                    const novo = { id: Date.now().toString(), ...dados };
+                    produtos.push(novo);
+                }
+                return { sucesso: true };
+            }
+            async function apiExcluirProduto(id) {
+                produtos = produtos.filter(p => p.id !== id);
+                return { sucesso: true };
+            }
+
+            const elements = {
+                tabBtns: document.querySelectorAll('.tab-btn'),
+                panes: document.querySelectorAll('.tab-pane'),
+                listaSessoes: document.getElementById('listaSessoes'),
+                listaProdutos: document.getElementById('listaProdutos'),
+                filtroSessao: document.getElementById('filtroSessao'),
+                btnNovaSessao: document.getElementById('btnNovaSessao'),
+                btnNovoProduto: document.getElementById('btnNovoProduto'),
+                modalSessao: document.getElementById('modalSessao'),
+                modalProduto: document.getElementById('modalProduto'),
+                formSessao: document.getElementById('formSessao'),
+                formProduto: document.getElementById('formProduto'),
+                toast: document.getElementById('toast'),
+                sessaoVideoFile: document.getElementById('sessaoVideoFile'),
+                videoFileName: document.getElementById('videoFileName')
+            };
+
+            let sessaoEditando = null;
+            let produtoEditando = null;
+
+            function showToast(msg, isError = false) {
+                const toast = elements.toast;
+                toast.textContent = msg;
+                toast.style.background = isError ? '#c0392b' : '#2b2418';
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            }
+
+            // Atualiza nome do arquivo de vídeo
+            elements.sessaoVideoFile.addEventListener('change', function() {
+                const file = this.files[0];
+                elements.videoFileName.textContent = file ? file.name : '';
+            });
+
+            function abrirModalSessao(sessao = null) {
+                sessaoEditando = sessao;
+                document.getElementById('sessaoId').value = sessao ? sessao.id : '';
+                document.getElementById('sessaoNome').value = sessao ? sessao.nome : '';
+                document.getElementById('sessaoSlug').value = sessao ? sessao.slug : '';
+                elements.sessaoVideoFile.value = '';
+                elements.videoFileName.textContent = sessao && sessao.videoUrl ? 'Vídeo atual (substitua se desejar)' : '';
+                document.getElementById('modalSessaoTitulo').textContent = sessao ? 'Editar Sessão' : 'Nova Sessão';
+                elements.modalSessao.classList.add('active');
+            }
+
+            function fecharModalSessao() {
+                elements.modalSessao.classList.remove('active');
+                sessaoEditando = null;
+            }
+
+            function abrirModalProduto(produto = null) {
+                produtoEditando = produto;
+                carregarSessoesNoSelect(document.getElementById('produtoSessao'));
+                document.getElementById('produtoId').value = produto ? produto.id : '';
+                document.getElementById('produtoNome').value = produto ? produto.nome : '';
+                document.getElementById('produtoDescricao').value = produto ? produto.descricao : '';
+                document.getElementById('produtoPreco').value = produto ? produto.preco : '';
+                document.getElementById('produtoTags').value = produto ? (produto.tags || []).join(', ') : '';
+                if (produto) {
+                    document.getElementById('produtoSessao').value = produto.sessaoId;
+                }
+                document.getElementById('modalProdutoTitulo').textContent = produto ? 'Editar Produto' : 'Novo Produto';
+                elements.modalProduto.classList.add('active');
+            }
+
+            function fecharModalProduto() {
+                elements.modalProduto.classList.remove('active');
+                produtoEditando = null;
+            }
+
+            async function carregarSessoesNoSelect(selectEl) {
+                const sessoes = await apiGetSessoes();
+                selectEl.innerHTML = sessoes.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
+                if (sessoes.length === 0) selectEl.innerHTML = '<option value="">Nenhuma sessão</option>';
+            }
+
+            async function renderizarSessoes() {
+                const sessoes = await apiGetSessoes();
+                const container = elements.listaSessoes;
+                if (sessoes.length === 0) {
+                    container.innerHTML = '<div class="empty-state">Nenhuma sessão criada ainda.</div>';
+                    return;
+                }
+                container.innerHTML = sessoes.map(s => `
+                    <div class="card">
+                        <div class="card-info">
+                            <div class="card-title">${s.nome}</div>
+                            <div class="card-meta">Slug: ${s.slug} | Vídeo: ${s.videoUrl ? '✅' : '❌'}</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-outline btn-sm editar-sessao" data-id="${s.id}">✏️ Editar</button>
+                            <button class="btn btn-danger btn-sm excluir-sessao" data-id="${s.id}">🗑️ Excluir</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.querySelectorAll('.editar-sessao').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.id;
+                        const sessoes = await apiGetSessoes();
+                        const sessao = sessoes.find(s => s.id === id);
+                        if (sessao) abrirModalSessao(sessao);
+                    });
+                });
+                document.querySelectorAll('.excluir-sessao').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('Tem certeza que deseja excluir esta sessão? Todos os produtos vinculados também serão removidos.')) return;
+                        await apiExcluirSessao(btn.dataset.id);
+                        showToast('Sessão removida.');
+                        await renderizarTudo();
+                    });
+                });
+            }
+
+            async function renderizarProdutos() {
+                const sessaoId = elements.filtroSessao.value;
+                const todosProdutos = await apiGetProdutos();
+                const produtosFiltrados = sessaoId ? todosProdutos.filter(p => p.sessaoId === sessaoId) : todosProdutos;
+                const container = elements.listaProdutos;
+                if (produtosFiltrados.length === 0) {
+                    container.innerHTML = '<div class="empty-state">Nenhum produto nesta sessão.</div>';
+                    return;
+                }
+                container.innerHTML = produtosFiltrados.map(p => {
+                    const sessao = sessoes.find(s => s.id === p.sessaoId);
+                    return `
+                    <div class="card">
+                        <div class="card-info">
+                            <div class="card-title">${p.nome} <span style="color:var(--gold-dark); margin-left:10px;">R$ ${p.preco.toFixed(2)}</span></div>
+                            <div class="card-meta">${p.descricao || ''} | Sessão: ${sessao ? sessao.nome : '—'}</div>
+                            ${p.tags && p.tags.length ? `<div style="margin-top:5px;">${p.tags.map(t => `<span style="background:rgba(180,148,63,0.1); padding:2px 8px; border-radius:4px; font-size:0.7rem; margin-right:5px;">${t}</span>`).join('')}</div>` : ''}
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-outline btn-sm editar-produto" data-id="${p.id}">✏️</button>
+                            <button class="btn btn-danger btn-sm excluir-produto" data-id="${p.id}">🗑️</button>
+                        </div>
+                    </div>
+                `}).join('');
+
+                document.querySelectorAll('.editar-produto').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.id;
+                        const todos = await apiGetProdutos();
+                        const prod = todos.find(p => p.id === id);
+                        if (prod) abrirModalProduto(prod);
+                    });
+                });
+                document.querySelectorAll('.excluir-produto').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('Excluir este produto?')) return;
+                        await apiExcluirProduto(btn.dataset.id);
+                        showToast('Produto removido.');
+                        await renderizarProdutos();
+                    });
+                });
+            }
+
+            async function renderizarTudo() {
+                await renderizarSessoes();
+                await carregarSessoesNoSelect(elements.filtroSessao);
+                await renderizarProdutos();
+            }
+
+            elements.tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tab = btn.dataset.tab;
+                    elements.tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    elements.panes.forEach(pane => pane.classList.remove('active'));
+                    document.getElementById(`tab-${tab}`).classList.add('active');
+                    if (tab === 'produtos') renderizarProdutos();
+                });
+            });
+
+            elements.btnNovaSessao.addEventListener('click', () => abrirModalSessao());
+            elements.btnNovoProduto.addEventListener('click', () => {
+                if (sessoes.length === 0) {
+                    showToast('Crie ao menos uma sessão antes de adicionar produtos.', true);
+                    return;
+                }
+                abrirModalProduto();
+            });
+
+            elements.filtroSessao.addEventListener('change', renderizarProdutos);
+
+            elements.formSessao.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('sessaoId').value;
+                const nome = document.getElementById('sessaoNome').value.trim();
+                const slug = document.getElementById('sessaoSlug').value.trim();
+                const videoFile = elements.sessaoVideoFile.files[0];
+
+                if (!nome || !slug) return showToast('Preencha nome e slug.', true);
+
+                const dados = { id: id || undefined, nome, slug };
+                await apiSalvarSessao(dados, videoFile);
+                showToast('Sessão salva com sucesso!');
+                fecharModalSessao();
+                await renderizarTudo();
+            });
+
+            document.getElementById('btnCancelarSessao').addEventListener('click', fecharModalSessao);
+            elements.modalSessao.addEventListener('click', (e) => {
+                if (e.target === elements.modalSessao) fecharModalSessao();
+            });
+
+            elements.formProduto.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('produtoId').value;
+                const sessaoId = document.getElementById('produtoSessao').value;
+                const nome = document.getElementById('produtoNome').value.trim();
+                const descricao = document.getElementById('produtoDescricao').value.trim();
+                const preco = parseFloat(document.getElementById('produtoPreco').value);
+                const tagsStr = document.getElementById('produtoTags').value;
+                const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
+
+                if (!sessaoId || !nome || isNaN(preco)) return showToast('Preencha campos obrigatórios.', true);
+
+                const dados = { id: id || undefined, sessaoId, nome, descricao, preco, tags };
+                await apiSalvarProduto(dados);
+                showToast('Produto salvo!');
+                fecharModalProduto();
+                await renderizarProdutos();
+            });
+
+            document.getElementById('btnCancelarProduto').addEventListener('click', fecharModalProduto);
+            elements.modalProduto.addEventListener('click', (e) => {
+                if (e.target === elements.modalProduto) fecharModalProduto();
+            });
+
+            (async function init() {
+                await carregarSessoesNoSelect(elements.filtroSessao);
+                await renderizarSessoes();
+                await renderizarProdutos();
+            })();
+
+            console.log('🔧 Painel administrativo pronto. Campo de URL removido e upload de vídeo estilizado.');
+        })();
+    </script>
+</body>
+</html>

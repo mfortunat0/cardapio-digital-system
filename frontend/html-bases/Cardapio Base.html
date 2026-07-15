@@ -1,0 +1,1284 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>La Maison · Cardápio</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #e8d5aa;
+        --primary-deep: #d4bf8c;
+        --primary-light: #f2e6cf;
+        --primary-lighter: #f9f2e2;
+        --text-primary: #2b2418;
+        --text-secondary: #5c5342;
+        --text-muted: #8b8068;
+        --gold: #b4943f;
+        --gold-light: #c7a85a;
+        --gold-dark: #9a7e2e;
+        --divider: rgba(180, 148, 63, 0.25);
+        --divider-strong: rgba(180, 148, 63, 0.45);
+        --transition-video: 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-item: 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      body {
+        font-family: "Cormorant Garamond", "Georgia", serif;
+        background: var(--primary-deep);
+        color: var(--text-primary);
+        height: 100vh;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      .app-container {
+        display: flex;
+        height: 100vh;
+        width: 100%;
+        position: relative;
+      }
+
+      /* ============ PAINEL ESQUERDO (MENU) ============ */
+      .menu-panel {
+        width: 50%;
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: var(--primary);
+        position: relative;
+        z-index: 2;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        border-right: 1px solid rgba(0, 0, 0, 0.06);
+      }
+
+      .menu-panel::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      .menu-panel::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .menu-panel::-webkit-scrollbar-thumb {
+        background: var(--gold-dark);
+        border-radius: 10px;
+        transition: background 0.3s;
+      }
+
+      .menu-panel::-webkit-scrollbar-thumb:hover {
+        background: var(--gold);
+      }
+
+      .menu-panel {
+        scrollbar-width: thin;
+        scrollbar-color: var(--gold-dark) transparent;
+      }
+
+      .menu-header {
+        padding: 60px 50px 30px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        background: linear-gradient(
+          180deg,
+          var(--primary) 75%,
+          rgba(232, 213, 170, 0) 100%
+        );
+        z-index: 10;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+      }
+
+      .menu-header .restaurant-name {
+        font-family: "Playfair Display", serif;
+        font-size: 2.6rem;
+        font-weight: 600;
+        letter-spacing: 3px;
+        color: var(--text-primary);
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        line-height: 1;
+      }
+
+      .menu-header .restaurant-subtitle {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.1rem;
+        font-weight: 300;
+        font-style: italic;
+        letter-spacing: 4px;
+        color: var(--gold);
+        text-transform: uppercase;
+      }
+
+      .menu-header .divider-ornament {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 18px;
+      }
+
+      .menu-header .divider-ornament .line {
+        width: 50px;
+        height: 1px;
+        background: var(--gold);
+        opacity: 0.6;
+      }
+
+      .menu-header .divider-ornament .diamond {
+        width: 6px;
+        height: 6px;
+        background: var(--gold);
+        transform: rotate(45deg);
+        opacity: 0.8;
+      }
+
+      .menu-content {
+        padding: 0 50px 80px;
+      }
+
+      .menu-section {
+        margin-bottom: 55px;
+        scroll-margin-top: 20px;
+      }
+
+      .section-header {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+      }
+
+      .section-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.65rem;
+        font-weight: 500;
+        letter-spacing: 2px;
+        color: var(--text-primary);
+        text-transform: uppercase;
+        display: inline-block;
+        position: relative;
+        padding: 0 30px;
+      }
+
+      .section-title::before,
+      .section-title::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        width: 40px;
+        height: 1px;
+        background: var(--gold);
+        opacity: 0.5;
+        transform: translateY(-50%);
+      }
+
+      .section-title::before {
+        left: -25px;
+      }
+      .section-title::after {
+        right: -25px;
+      }
+
+      .section-subtitle {
+        display: block;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.85rem;
+        font-style: italic;
+        color: var(--text-muted);
+        letter-spacing: 1.5px;
+        margin-top: 4px;
+        font-weight: 300;
+      }
+
+      .menu-items {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+
+      .menu-item {
+        opacity: 0;
+        transform: translateY(28px);
+        transition:
+          opacity var(--transition-item),
+          transform var(--transition-item);
+        transition-delay: var(--item-delay, 0s);
+        will-change: opacity, transform;
+      }
+
+      .menu-item.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .item-header {
+        display: flex;
+        align-items: baseline;
+        gap: 0;
+        margin-bottom: 5px;
+      }
+
+      .item-name {
+        font-family: "Playfair Display", serif;
+        font-size: 1.15rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        max-width: 70%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .item-dots {
+        flex: 1;
+        min-width: 20px;
+        border-bottom: 2px dotted var(--divider);
+        margin: 0 10px;
+        position: relative;
+        top: -5px;
+      }
+
+      .item-price {
+        font-family: "Playfair Display", serif;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--gold);
+        white-space: nowrap;
+        flex-shrink: 0;
+        letter-spacing: 1px;
+      }
+
+      .item-description {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.95rem;
+        font-weight: 300;
+        font-style: italic;
+        color: var(--text-secondary);
+        letter-spacing: 0.3px;
+        line-height: 1.5;
+        padding-left: 2px;
+      }
+
+      .item-tags {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+        flex-wrap: wrap;
+      }
+
+      .item-tag {
+        font-family: "Lato", sans-serif;
+        font-size: 0.65rem;
+        font-weight: 400;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--gold-dark);
+        border: 1px solid var(--divider-strong);
+        padding: 2px 8px;
+        border-radius: 2px;
+        background: rgba(180, 148, 63, 0.08);
+      }
+
+      .menu-item:hover .item-name {
+        color: var(--gold-dark);
+        transition: color 0.3s;
+      }
+      .menu-item:hover .item-price {
+        color: var(--gold-dark);
+        transition: color 0.3s;
+      }
+      .menu-item:hover .item-dots {
+        border-bottom-color: var(--divider-strong);
+        transition: border-color 0.3s;
+      }
+
+      /* ============ PAINEL DIREITO (VIDEO PLAYER) ============ */
+      .video-panel {
+        width: 50%;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        right: 0;
+        overflow: hidden;
+        background: #000;
+        z-index: 1;
+      }
+
+      .video-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      .video-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: opacity var(--transition-video);
+        opacity: 0;
+        pointer-events: none;
+        will-change: opacity;
+      }
+
+      .video-layer.active {
+        opacity: 1;
+      }
+
+      .video-layer.loading {
+        opacity: 0;
+      }
+
+      .video-poster {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+        transition: opacity 0.8s ease;
+      }
+
+      .video-poster.hidden {
+        opacity: 0;
+      }
+
+      .video-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 60px 40px 40px;
+        background: linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.85) 0%,
+          rgba(0, 0, 0, 0.5) 40%,
+          rgba(0, 0, 0, 0) 100%
+        );
+        z-index: 5;
+        pointer-events: none;
+      }
+
+      .video-section-label {
+        font-family: "Playfair Display", serif;
+        font-size: 1.3rem;
+        font-weight: 500;
+        letter-spacing: 3px;
+        color: #fff;
+        text-transform: uppercase;
+        text-shadow: 0 2px 15px rgba(0, 0, 0, 0.7);
+        transition: all 0.5s ease;
+        display: inline-block;
+      }
+
+      .video-section-label.fade-change {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      .video-section-indicator {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .video-section-indicator .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--gold);
+        box-shadow: 0 0 12px rgba(201, 167, 77, 0.8);
+        animation: pulse-dot 2s ease-in-out infinite;
+      }
+
+      .video-section-indicator .current-section-name {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.85rem;
+        font-style: italic;
+        letter-spacing: 2px;
+        color: rgba(255, 255, 255, 0.8);
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+      }
+
+      @keyframes pulse-dot {
+        0%,
+        100% {
+          box-shadow: 0 0 8px rgba(201, 167, 77, 0.6);
+        }
+        50% {
+          box-shadow:
+            0 0 20px rgba(201, 167, 77, 1),
+            0 0 35px rgba(201, 167, 77, 0.5);
+        }
+      }
+
+      .video-loading-spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 48px;
+        height: 48px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-top-color: var(--gold);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        z-index: 6;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+
+      .video-loading-spinner.visible {
+        opacity: 1;
+      }
+
+      @keyframes spin {
+        to {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      /* ============ NAVEGAÇÃO DE SEÇÕES (DOTS) ============ */
+      .section-nav-dots {
+        position: fixed;
+        right: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        align-items: center;
+      }
+
+      .section-nav-dots .nav-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+        transition: all 0.35s ease;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        position: relative;
+      }
+
+      .section-nav-dots .nav-dot:hover {
+        background: rgba(201, 167, 77, 0.7);
+        border-color: var(--gold);
+        box-shadow: 0 0 12px rgba(201, 167, 77, 0.5);
+        transform: scale(1.3);
+      }
+
+      .section-nav-dots .nav-dot.active {
+        background: var(--gold);
+        border-color: var(--gold-light);
+        box-shadow: 0 0 16px rgba(201, 167, 77, 0.7);
+        transform: scale(1.2);
+      }
+
+      .section-nav-dots .nav-dot .dot-tooltip {
+        position: absolute;
+        right: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--primary);
+        color: var(--gold-dark);
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.7rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        padding: 6px 12px;
+        border-radius: 3px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+        border: 1px solid var(--divider-strong);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      .section-nav-dots .nav-dot:hover .dot-tooltip {
+        opacity: 1;
+      }
+
+      /* ============ RESPONSIVO ============ */
+      @media (max-width: 900px) {
+        .app-container {
+          flex-direction: column;
+        }
+
+        .menu-panel {
+          width: 100%;
+          height: 60vh;
+          order: 2;
+          border-top: 1px solid var(--divider);
+          border-right: none;
+        }
+
+        .video-panel {
+          width: 100%;
+          height: 40vh;
+          position: relative;
+          order: 1;
+          flex-shrink: 0;
+        }
+
+        .menu-header {
+          padding: 30px 25px 20px;
+        }
+
+        .menu-header .restaurant-name {
+          font-size: 1.8rem;
+          letter-spacing: 2px;
+        }
+
+        .menu-content {
+          padding: 0 25px 50px;
+        }
+
+        .section-title {
+          font-size: 1.3rem;
+        }
+
+        .item-name {
+          font-size: 1rem;
+          max-width: 60%;
+        }
+
+        .item-price {
+          font-size: 1rem;
+        }
+
+        .item-description {
+          font-size: 0.85rem;
+        }
+
+        .section-nav-dots {
+          right: 10px;
+          gap: 10px;
+        }
+
+        .section-nav-dots .nav-dot {
+          width: 8px;
+          height: 8px;
+        }
+
+        .video-overlay {
+          padding: 30px 25px 25px;
+        }
+
+        .video-section-label {
+          font-size: 1rem;
+          letter-spacing: 2px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .menu-panel {
+          height: 55vh;
+        }
+        .video-panel {
+          height: 45vh;
+        }
+        .menu-header {
+          padding: 20px 18px 15px;
+        }
+        .menu-header .restaurant-name {
+          font-size: 1.4rem;
+        }
+        .menu-content {
+          padding: 0 18px 40px;
+        }
+        .menu-section {
+          margin-bottom: 35px;
+        }
+        .section-title {
+          font-size: 1.1rem;
+          letter-spacing: 1px;
+        }
+        .item-name {
+          font-size: 0.9rem;
+          max-width: 55%;
+        }
+        .item-price {
+          font-size: 0.9rem;
+        }
+        .item-description {
+          font-size: 0.78rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- ==================== PAINEL ESQUERDO · MENU ==================== -->
+      <div class="menu-panel" id="menuPanel">
+        <header class="menu-header">
+          <h1 class="restaurant-name">La Maison</h1>
+          <p class="restaurant-subtitle">Gastronomia Francesa</p>
+          <div class="divider-ornament">
+            <span class="line"></span>
+            <span class="diamond"></span>
+            <span class="line"></span>
+          </div>
+        </header>
+
+        <div class="menu-content">
+          <!-- SEÇÃO: PRATOS PRINCIPAIS -->
+          <section class="menu-section" id="section-pratos" data-video="pratos">
+            <div class="section-header">
+              <span class="section-title">Pratos Principais</span>
+              <span class="section-subtitle">les plats</span>
+            </div>
+            <div class="menu-items">
+              <div class="menu-item" style="--item-delay: 0s">
+                <div class="item-header">
+                  <span class="item-name">Risoto de Cogumelos Trufados</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 89</span>
+                </div>
+                <p class="item-description">
+                  Arroz arbóreo cremoso com mix de cogumelos selvagens, azeite
+                  de trufas negras e parmesão
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Trufado</span
+                  ><span class="item-tag">Vegetariano</span>
+                </div>
+              </div>
+              <div class="menu-item" style="--item-delay: 0.08s">
+                <div class="item-header">
+                  <span class="item-name">Filé Mignon ao Molho Madeira</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 112</span>
+                </div>
+                <p class="item-description">
+                  Medalhão de filé mignon grelhado, molho madeira envelhecido,
+                  purê de mandioquinha e aspargos
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Clássico</span
+                  ><span class="item-tag">Premium</span>
+                </div>
+              </div>
+              <div class="menu-item" style="--item-delay: 0.16s">
+                <div class="item-header">
+                  <span class="item-name">Salmão Grelhado com Ervas</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 96</span>
+                </div>
+                <p class="item-description">
+                  Posta de salmão selvagem grelhada, crosta de ervas finas,
+                  legumes glaceados e molho de maracujá
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Saudável</span>
+                </div>
+              </div>
+              <div class="menu-item" style="--item-delay: 0.24s">
+                <div class="item-header">
+                  <span class="item-name">Ravioli de Queijo de Cabra</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 78</span>
+                </div>
+                <p class="item-description">
+                  Massa artesanal recheada com queijo de cabra e nozes, manteiga
+                  de sálvia e mel trufado
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Artesanal</span>
+                </div>
+              </div>
+              <div class="menu-item" style="--item-delay: 0.32s">
+                <div class="item-header">
+                  <span class="item-name">Polvo à Lagareiro</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 120</span>
+                </div>
+                <p class="item-description">
+                  Polvo assado lentamente, batatas ao murro, cebola caramelizada
+                  e azeite extra virgem
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Premium</span
+                  ><span class="item-tag">Especial</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SEÇÃO: ENTRADAS -->
+          <section
+            class="menu-section"
+            id="section-entradas"
+            data-video="entradas"
+          >
+            <div class="section-header">
+              <span class="section-title">Entradas</span>
+              <span class="section-subtitle">pour commencer</span>
+            </div>
+            <div class="menu-items">
+              <div class="menu-item" style="--item-delay: 0s">
+                <div class="item-header">
+                  <span class="item-name">Carpaccio de Carne</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 48</span>
+                </div>
+                <p class="item-description">
+                  Finas lâminas de filé mignon com rúcula, lascas de parmesão
+                  trufado e alcaparras
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Clássico</span
+                  ><span class="item-tag">Trufado</span>
+                </div>
+              </div>
+              <div class="menu-item" style="--item-delay: 0.08s">
+                <div class="item-header">
+                  <span class="item-name">Salada de Burrata</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 42</span>
+                </div>
+                <p class="item-description">
+                  Burrata cremosa com tomates heirloom, manjericão fresco e
+                  redução balsâmica
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Vegetariano</span>
+                </div>
+              </div>
+              <div class="menu-item" style="--item-delay: 0.16s">
+                <div class="item-header">
+                  <span class="item-name">Ceviche de Peixe Branco</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 52</span>
+                </div>
+                <p class="item-description">
+                  Cubos de robalo curados em leite de tigre, milho crocante e
+                  batata-doce
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Fresco</span
+                  ><span class="item-tag">Cítrico</span>
+                </div>
+              </div>
+              <div class="menu-item" style="--item-delay: 0.24s">
+                <div class="item-header">
+                  <span class="item-name">Polvo Grelhado</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 58</span>
+                </div>
+                <p class="item-description">
+                  Tentáculos de polvo grelhados sobre batatas rústicas, páprica
+                  defumada e aioli cítrico
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Premium</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SEÇÃO: SOBREMESAS -->
+          <section
+            class="menu-section"
+            id="section-sobremesas"
+            data-video="sobremesas"
+          >
+            <div class="section-header">
+              <span class="section-title">Sobremesas</span>
+              <span class="section-subtitle">les desserts</span>
+            </div>
+            <div class="menu-items">
+              <div class="menu-item" style="--item-delay: 0s">
+                <div class="item-header">
+                  <span class="item-name">Tiramisù Clássico</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 38</span>
+                </div>
+                <p class="item-description">
+                  Camadas de mascarpone, café espresso, cacau amargo e biscoitos
+                  savoiardi artesanais
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Clássico</span>
+                </div>
+              </div>
+              <div class="menu-item" style="--item-delay: 0.08s">
+                <div class="item-header">
+                  <span class="item-name">Cheesecake de Frutas Vermelhas</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 42</span>
+                </div>
+                <p class="item-description">
+                  Cheesecake cremoso sobre base de biscoito, calda de frutas
+                  vermelhas frescas e hortelã
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Frutado</span>
+                </div>
+              </div>
+              <div class="menu-item" style="--item-delay: 0.16s">
+                <div class="item-header">
+                  <span class="item-name">Fondant de Chocolate</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 45</span>
+                </div>
+                <p class="item-description">
+                  Bolo de chocolate com núcleo cremoso, servido quente com
+                  sorvete de baunilha de Madagascar
+                </p>
+                <div class="item-tags">
+                  <span class="item-tag">Quente</span
+                  ><span class="item-tag">Intenso</span>
+                </div>
+              </div>
+              <div class="menu-item" style="--item-delay: 0.24s">
+                <div class="item-header">
+                  <span class="item-name">Panna Cotta de Baunilha</span>
+                  <span class="item-dots"></span>
+                  <span class="item-price">R$ 35</span>
+                </div>
+                <p class="item-description">
+                  Panna cotta sedosa de baunilha bourbon com calda de frutas
+                  cítricas e flor de sal
+                </p>
+                <div class="item-tags"><span class="item-tag">Leve</span></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- ==================== PAINEL DIREITO · PLAYER DE VÍDEO ==================== -->
+      <div class="video-panel" id="videoPanel">
+        <div class="video-wrapper">
+          <video
+            id="videoA"
+            class="video-layer active"
+            muted
+            loop
+            playsinline
+            preload="auto"
+            disablePictureInPicture
+            disableremoteplayback
+          ></video>
+          <video
+            id="videoB"
+            class="video-layer"
+            muted
+            loop
+            playsinline
+            preload="auto"
+            disablePictureInPicture
+            disableremoteplayback
+          ></video>
+          <img
+            id="videoPoster"
+            class="video-poster"
+            src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80"
+            alt=""
+            loading="eager"
+          />
+          <div class="video-loading-spinner" id="loadingSpinner"></div>
+          <div class="video-overlay">
+            <span class="video-section-label" id="videoLabel"
+              >Pratos Principais</span
+            >
+            <div class="video-section-indicator">
+              <span class="dot"></span>
+              <span class="current-section-name" id="videoCurrentSection"
+                >les plats</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== NAVEGAÇÃO LATERAL (DOTS) ==================== -->
+      <div class="section-nav-dots" id="navDots">
+        <div
+          class="nav-dot active"
+          data-target="section-pratos"
+          data-label="Pratos"
+        >
+          <span class="dot-tooltip">Pratos</span>
+        </div>
+        <div
+          class="nav-dot"
+          data-target="section-entradas"
+          data-label="Entradas"
+        >
+          <span class="dot-tooltip">Entradas</span>
+        </div>
+        <div
+          class="nav-dot"
+          data-target="section-sobremesas"
+          data-label="Sobremesas"
+        >
+          <span class="dot-tooltip">Sobremesas</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const videoData = {
+          pratos: {
+            src: "https://videos.pexels.com/video-files/4761687/4761687-sd_640_360_24fps.mp4",
+            poster:
+              "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80",
+            label: "Pratos Principais",
+            subtitle: "les plats",
+          },
+          entradas: {
+            src: "https://videos.pexels.com/video-files/4065393/4065393-sd_640_360_25fps.mp4",
+            poster:
+              "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1200&q=80",
+            label: "Entradas",
+            subtitle: "pour commencer",
+          },
+          sobremesas: {
+            src: "https://videos.pexels.com/video-files/4107551/4107551-sd_640_360_25fps.mp4",
+            poster:
+              "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=1200&q=80",
+            label: "Sobremesas",
+            subtitle: "les desserts",
+          },
+        };
+
+        const menuPanel = document.getElementById("menuPanel");
+        const videoA = document.getElementById("videoA");
+        const videoB = document.getElementById("videoB");
+        const videoPoster = document.getElementById("videoPoster");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        const videoLabel = document.getElementById("videoLabel");
+        const videoCurrentSection = document.getElementById(
+          "videoCurrentSection",
+        );
+        const allNavDots = document.querySelectorAll("#navDots .nav-dot");
+
+        let activeVideoKey = "pratos";
+        let activeVideoElement = videoA;
+        let inactiveVideoElement = videoB;
+        let isTransitioning = false;
+        let lastTransitionTime = 0;
+        const TRANSITION_COOLDOWN = 600;
+        let videoLoadTimer = null;
+
+        function showLoadingSpinner() {
+          loadingSpinner.classList.add("visible");
+        }
+        function hideLoadingSpinner() {
+          loadingSpinner.classList.remove("visible");
+        }
+        function updatePoster(posterUrl) {
+          videoPoster.src = posterUrl;
+          videoPoster.classList.remove("hidden");
+        }
+        function hidePoster() {
+          videoPoster.classList.add("hidden");
+        }
+
+        function updateOverlay(key) {
+          const data = videoData[key];
+          if (!data) return;
+          videoLabel.classList.add("fade-change");
+          videoCurrentSection.classList.add("fade-change");
+          setTimeout(() => {
+            videoLabel.textContent = data.label;
+            videoCurrentSection.textContent = data.subtitle;
+            videoLabel.classList.remove("fade-change");
+            videoCurrentSection.classList.remove("fade-change");
+          }, 300);
+        }
+
+        function switchActiveVideoElement() {
+          if (activeVideoElement === videoA) {
+            activeVideoElement = videoB;
+            inactiveVideoElement = videoA;
+          } else {
+            activeVideoElement = videoA;
+            inactiveVideoElement = videoB;
+          }
+        }
+
+        function loadAndPlayVideo(key, targetVideoElement) {
+          const data = videoData[key];
+          if (!data) return;
+          updatePoster(data.poster);
+          targetVideoElement.src = data.src;
+          targetVideoElement.load();
+          showLoadingSpinner();
+          clearTimeout(videoLoadTimer);
+          videoLoadTimer = setTimeout(() => {
+            hideLoadingSpinner();
+            performVideoTransition(key);
+          }, 8000);
+          const onCanPlay = () => {
+            clearTimeout(videoLoadTimer);
+            hideLoadingSpinner();
+            targetVideoElement.removeEventListener("canplay", onCanPlay);
+            targetVideoElement.removeEventListener("canplaythrough", onCanPlay);
+            performVideoTransition(key);
+          };
+          const onError = () => {
+            clearTimeout(videoLoadTimer);
+            hideLoadingSpinner();
+            targetVideoElement.removeEventListener("canplay", onCanPlay);
+            targetVideoElement.removeEventListener("canplaythrough", onCanPlay);
+            targetVideoElement.removeEventListener("error", onError);
+            performVideoTransition(key);
+          };
+          targetVideoElement.addEventListener("canplay", onCanPlay, {
+            once: false,
+          });
+          targetVideoElement.addEventListener("canplaythrough", onCanPlay, {
+            once: false,
+          });
+          targetVideoElement.addEventListener("error", onError, {
+            once: false,
+          });
+        }
+
+        function performVideoTransition(key) {
+          if (isTransitioning && activeVideoKey === key) return;
+          const now = Date.now();
+          if (
+            now - lastTransitionTime < TRANSITION_COOLDOWN &&
+            activeVideoKey !== key
+          ) {
+            setTimeout(() => performVideoTransition(key), TRANSITION_COOLDOWN);
+            return;
+          }
+          isTransitioning = true;
+          lastTransitionTime = now;
+          const data = videoData[key];
+          if (!data) {
+            isTransitioning = false;
+            return;
+          }
+          const incomingVideo = inactiveVideoElement;
+          const outgoingVideo = activeVideoElement;
+          updatePoster(data.poster);
+          incomingVideo.play().catch(() => {});
+          incomingVideo.classList.add("active");
+          incomingVideo.classList.remove("loading");
+          outgoingVideo.classList.remove("active");
+          const onTransitionEnd = () => {
+            outgoingVideo.removeEventListener("transitionend", onTransitionEnd);
+            outgoingVideo.src = "";
+            outgoingVideo.load();
+            outgoingVideo.classList.add("loading");
+            switchActiveVideoElement();
+            activeVideoKey = key;
+            updateOverlay(key);
+            if (!incomingVideo.paused && incomingVideo.readyState >= 2)
+              hidePoster();
+            isTransitioning = false;
+            setTimeout(() => {
+              if (!incomingVideo.paused && incomingVideo.readyState >= 2)
+                hidePoster();
+            }, 500);
+          };
+          outgoingVideo.addEventListener("transitionend", onTransitionEnd, {
+            once: true,
+          });
+          setTimeout(() => {
+            if (isTransitioning && activeVideoKey !== key) onTransitionEnd();
+          }, 900);
+          updateOverlay(key);
+        }
+
+        function switchVideo(key) {
+          if (key === activeVideoKey && !isTransitioning) return;
+          if (isTransitioning) {
+            const checkInterval = setInterval(() => {
+              if (!isTransitioning) {
+                clearInterval(checkInterval);
+                if (key !== activeVideoKey)
+                  loadAndPlayVideo(key, inactiveVideoElement);
+              }
+            }, 100);
+            setTimeout(() => clearInterval(checkInterval), 3000);
+            return;
+          }
+          loadAndPlayVideo(key, inactiveVideoElement);
+        }
+
+        function initVideo() {
+          const initialData = videoData["pratos"];
+          videoPoster.src = initialData.poster;
+          videoA.src = initialData.src;
+          videoA.classList.add("active");
+          videoA.classList.remove("loading");
+          videoB.classList.add("loading");
+          videoB.classList.remove("active");
+          activeVideoElement = videoA;
+          inactiveVideoElement = videoB;
+          activeVideoKey = "pratos";
+          videoLabel.textContent = initialData.label;
+          videoCurrentSection.textContent = initialData.subtitle;
+          showLoadingSpinner();
+          videoA
+            .play()
+            .then(() => {
+              hideLoadingSpinner();
+              hidePoster();
+            })
+            .catch(() => {
+              hideLoadingSpinner();
+            });
+          videoLoadTimer = setTimeout(() => hideLoadingSpinner(), 8000);
+          videoA.addEventListener(
+            "canplay",
+            () => {
+              clearTimeout(videoLoadTimer);
+              hideLoadingSpinner();
+              hidePoster();
+            },
+            { once: true },
+          );
+          videoA.addEventListener(
+            "error",
+            () => {
+              clearTimeout(videoLoadTimer);
+              hideLoadingSpinner();
+            },
+            { once: true },
+          );
+        }
+
+        const sectionElements = document.querySelectorAll(".menu-section");
+        const sectionVisibilityMap = new Map();
+        let currentActiveSection = "pratos";
+        sectionElements.forEach((section) =>
+          sectionVisibilityMap.set(section, 0),
+        );
+        const sectionObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) =>
+              sectionVisibilityMap.set(entry.target, entry.intersectionRatio),
+            );
+            let maxRatio = 0,
+              mostVisibleSection = null;
+            sectionVisibilityMap.forEach((ratio, section) => {
+              if (ratio > maxRatio) {
+                maxRatio = ratio;
+                mostVisibleSection = section;
+              }
+            });
+            if (mostVisibleSection && maxRatio > 0.08) {
+              const videoKey = mostVisibleSection.getAttribute("data-video");
+              if (videoKey && videoKey !== currentActiveSection) {
+                currentActiveSection = videoKey;
+                switchVideo(videoKey);
+                updateNavDots(mostVisibleSection.id);
+              }
+            }
+          },
+          {
+            root: menuPanel,
+            threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+          },
+        );
+        sectionElements.forEach((section) => sectionObserver.observe(section));
+
+        const menuItems = document.querySelectorAll(".menu-item");
+        const itemObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) entry.target.classList.add("visible");
+            });
+          },
+          { root: menuPanel, threshold: 0.08, rootMargin: "0px 0px -15px 0px" },
+        );
+        menuItems.forEach((item) => itemObserver.observe(item));
+
+        function updateNavDots(activeSectionId) {
+          allNavDots.forEach((dot) => {
+            dot.classList.toggle(
+              "active",
+              dot.getAttribute("data-target") === activeSectionId,
+            );
+          });
+        }
+
+        allNavDots.forEach((dot) => {
+          dot.addEventListener("click", () => {
+            const targetId = dot.getAttribute("data-target");
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+              targetSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+              const videoKey = targetSection.getAttribute("data-video");
+              if (videoKey && videoKey !== currentActiveSection) {
+                currentActiveSection = videoKey;
+                switchVideo(videoKey);
+                updateNavDots(targetId);
+              }
+            }
+          });
+        });
+
+        function init() {
+          initVideo();
+          updateNavDots("section-pratos");
+          setTimeout(() => {
+            menuItems.forEach((item) => {
+              const rect = item.getBoundingClientRect();
+              const panelRect = menuPanel.getBoundingClientRect();
+              if (rect.top < panelRect.bottom && rect.bottom > panelRect.top)
+                item.classList.add("visible");
+            });
+          }, 150);
+        }
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            videoA.pause();
+            videoB.pause();
+          } else {
+            if (activeVideoElement === videoA) videoA.play().catch(() => {});
+            else videoB.play().catch(() => {});
+          }
+        });
+        [videoA, videoB].forEach((video) => {
+          video.addEventListener("playing", () => {
+            if (video.classList.contains("active")) hidePoster();
+          });
+        });
+
+        init();
+        console.log("🍽️ Cardápio La Maison · Cor #e8d5aa");
+      })();
+    </script>
+  </body>
+</html>

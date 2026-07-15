@@ -1,0 +1,315 @@
+/* src/pages/CardapioFora/CardapioFora.module.css */
+:root {
+  --primary: #e8d5aa;
+  --card-bg: rgba(255, 253, 247, 0.88);
+  --text-primary: #2b2418;
+  --text-secondary: #5c5342;
+  --text-muted: #8b8068;
+  --gold: #b4943f;
+  --gold-dark: #9a7e2e;
+  --border: rgba(180, 148, 63, 0.3);
+  --radius: 12px;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --transition-speed: 0.8s;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.page-container {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  background: var(--primary);
+}
+
+/* Vídeo de fundo */
+.background-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+  opacity: 0.4;
+  filter: brightness(0.8) saturate(0.9);
+}
+
+.fallback-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+
+.background-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(232, 213, 170, 0.65);
+  z-index: -1;
+  backdrop-filter: blur(1px);
+}
+
+.carousel-container {
+  width: 100%;
+  max-width: 1300px;
+  height: 80vh;
+  max-height: 900px;
+  position: relative;
+  z-index: 1;
+}
+
+.slides-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  gap: 30px;
+  opacity: 0;
+  transition: opacity var(--transition-speed) ease-in-out;
+  pointer-events: none;
+}
+
+.slide.active {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 2;
+}
+
+.session-column {
+  flex: 1;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 40px 35px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  transition: background 0.3s;
+}
+
+.empty-session {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-style: italic;
+  opacity: 0.7;
+  gap: 10px;
+}
+
+.session-header {
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.session-title {
+  font-family: "Playfair Display", serif;
+  font-size: 1.8rem;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.session-subtitle {
+  display: block;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
+.divider-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.divider-ornament .line {
+  width: 40px;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.5;
+}
+
+.divider-ornament .diamond {
+  width: 5px;
+  height: 5px;
+  background: var(--gold);
+  transform: rotate(45deg);
+  opacity: 0.7;
+}
+
+.products-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.products-list::-webkit-scrollbar {
+  width: 4px;
+}
+.products-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.products-list::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 10px;
+}
+.products-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold) transparent;
+}
+
+.product-item {
+  border-bottom: 1px dashed rgba(180, 148, 63, 0.2);
+  padding-bottom: 12px;
+}
+
+.product-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.product-header {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.product-name {
+  font-family: "Playfair Display", serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65%;
+}
+
+.product-dots {
+  flex: 1;
+  min-width: 20px;
+  border-bottom: 2px dotted rgba(180, 148, 63, 0.25);
+  margin: 0 10px;
+  position: relative;
+  top: -5px;
+}
+
+.product-price {
+  font-family: "Playfair Display", serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--gold-dark);
+  white-space: nowrap;
+}
+
+.product-description {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+  margin-top: 3px;
+}
+
+.product-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.product-tag {
+  font-family: "Lato", sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(180, 148, 63, 0.1);
+}
+
+/* Responsivo */
+@media (max-width: 800px) {
+  .page-container {
+    padding: 15px;
+  }
+  .slide {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .carousel-container {
+    height: auto;
+    max-height: none;
+  }
+  .session-column {
+    padding: 25px 20px;
+  }
+  .session-title {
+    font-size: 1.4rem;
+  }
+  .product-name {
+    max-width: 55%;
+    font-size: 1rem;
+  }
+  .product-price {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .session-title {
+    font-size: 1.2rem;
+  }
+  .session-subtitle {
+    font-size: 0.8rem;
+  }
+  .product-name {
+    font-size: 0.9rem;
+  }
+  .product-description {
+    font-size: 0.8rem;
+  }
+}

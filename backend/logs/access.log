@@ -1,0 +1,5 @@
+POST /api/auth/login 200 246 - 4.060 ms {"username":"admin","password":"admin"}
+POST /api/auth/login 200 165 - 5.990 ms {"username":"admin","password":"admin"}
+POST /api/auth/login 200 175 - 6.215 ms {"username":"admin","password":"admin"}
+GET /api/produtos 200 2 - 48.312 ms {"username":"admin","password":"admin"}
+GET /api/sessoes 200 2 - 2.833 ms {"username":"admin","password":"admin"}

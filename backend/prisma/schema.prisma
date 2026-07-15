@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+
+model Sessao {
+  id        String   @id @default(cuid())
+  nome      String
+  slug      String   @unique
+  videoUrl  String?  // URL do vídeo (pode ser caminho ou URL externa)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  produtos  Produto[]
+}
+
+model Produto {
+  id          String   @id @default(cuid())
+  sessaoId    String
+  sessao      Sessao   @relation(fields: [sessaoId], references: [id], onDelete: Cascade)
+  nome        String
+  descricao   String?
+  preco       Float
+  tags        String   // JSON string array
+  imagens     String   // JSON string array de URLs
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

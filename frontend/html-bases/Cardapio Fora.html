@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cardápio em Exibição · La Maison</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #e8d5aa;
+        --card-bg: rgba(255, 253, 247, 0.88);
+        --text-primary: #2b2418;
+        --text-secondary: #5c5342;
+        --text-muted: #8b8068;
+        --gold: #b4943f;
+        --gold-dark: #9a7e2e;
+        --border: rgba(180, 148, 63, 0.3);
+        --radius: 12px;
+        --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        --transition-speed: 0.8s;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        color: var(--text-primary);
+        height: 100vh;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 30px;
+      }
+
+      /* Vídeo de fundo */
+      .background-video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -2;
+        opacity: 0.4;
+        filter: brightness(0.8) saturate(0.9);
+      }
+
+      /* Overlay com a cor principal */
+      .background-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(232, 213, 170, 0.65);
+        z-index: -1;
+        backdrop-filter: blur(1px);
+      }
+
+      .carousel-container {
+        width: 100%;
+        max-width: 1300px;
+        height: 80vh;
+        max-height: 900px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .slides-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      .slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        gap: 30px;
+        opacity: 0;
+        transition: opacity var(--transition-speed) ease-in-out;
+        pointer-events: none;
+      }
+
+      .slide.active {
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 2;
+      }
+
+      .session-column {
+        flex: 1;
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 40px 35px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border);
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        transition: background 0.3s;
+      }
+
+      .session-header {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+      }
+
+      .session-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.8rem;
+        font-weight: 500;
+        letter-spacing: 2px;
+        color: var(--text-primary);
+        text-transform: uppercase;
+        line-height: 1.2;
+      }
+
+      .session-subtitle {
+        display: block;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.9rem;
+        font-style: italic;
+        color: var(--text-muted);
+        letter-spacing: 2px;
+        margin-top: 4px;
+      }
+
+      .divider-ornament {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 15px;
+      }
+
+      .divider-ornament .line {
+        width: 40px;
+        height: 1px;
+        background: var(--gold);
+        opacity: 0.5;
+      }
+
+      .divider-ornament .diamond {
+        width: 5px;
+        height: 5px;
+        background: var(--gold);
+        transform: rotate(45deg);
+        opacity: 0.7;
+      }
+
+      .products-list {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+      }
+
+      .product-item {
+        border-bottom: 1px dashed rgba(180, 148, 63, 0.2);
+        padding-bottom: 12px;
+      }
+
+      .product-header {
+        display: flex;
+        align-items: baseline;
+        margin-bottom: 4px;
+      }
+
+      .product-name {
+        font-family: "Playfair Display", serif;
+        font-size: 1.1rem;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 65%;
+      }
+
+      .product-dots {
+        flex: 1;
+        min-width: 20px;
+        border-bottom: 2px dotted rgba(180, 148, 63, 0.25);
+        margin: 0 10px;
+        position: relative;
+        top: -5px;
+      }
+
+      .product-price {
+        font-family: "Playfair Display", serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--gold-dark);
+        white-space: nowrap;
+      }
+
+      .product-description {
+        font-size: 0.85rem;
+        font-style: italic;
+        color: var(--text-secondary);
+        letter-spacing: 0.2px;
+        line-height: 1.4;
+        margin-top: 3px;
+      }
+
+      .product-tags {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+
+      .product-tag {
+        font-family: "Lato", sans-serif;
+        font-size: 0.6rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--gold-dark);
+        border: 1px solid var(--border);
+        padding: 2px 8px;
+        border-radius: 3px;
+        background: rgba(180, 148, 63, 0.1);
+      }
+
+      .empty-session {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-muted);
+        font-style: italic;
+        opacity: 0.7;
+      }
+
+      @media (max-width: 800px) {
+        body {
+          padding: 15px;
+        }
+        .slide {
+          flex-direction: column;
+          gap: 20px;
+        }
+        .carousel-container {
+          height: auto;
+          max-height: none;
+        }
+        .session-column {
+          padding: 25px 20px;
+        }
+        .session-title {
+          font-size: 1.4rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Vídeo de fundo: comida sendo preparada -->
+    <video class="background-video" autoplay muted loop playsinline>
+      <source
+        src="https://videos.pexels.com/video-files/3196277/3196277-sd_640_360_25fps.mp4"
+        type="video/mp4"
+      />
+      <img
+        src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80"
+        alt="preparo de comida"
+        style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          z-index: -2;
+        "
+      />
+    </video>
+    <div class="background-overlay"></div>
+
+    <div class="carousel-container">
+      <div class="slides-wrapper" id="slidesWrapper">
+        <!-- Slides gerados dinamicamente -->
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const sessoes = [
+          {
+            id: "1",
+            nome: "Pratos Principais",
+            subtitulo: "les plats",
+            produtos: [
+              {
+                nome: "Risoto de Cogumelos Trufados",
+                descricao:
+                  "Arroz arbóreo com mix de cogumelos selvagens e azeite de trufas",
+                preco: 89.0,
+                tags: ["Trufado", "Vegetariano"],
+              },
+              {
+                nome: "Filé Mignon ao Molho Madeira",
+                descricao:
+                  "Medalhão grelhado, molho madeira e purê de mandioquinha",
+                preco: 112.0,
+                tags: ["Clássico", "Premium"],
+              },
+              {
+                nome: "Salmão Grelhado com Ervas",
+                descricao:
+                  "Posta de salmão selvagem, legumes glaceados e molho de maracujá",
+                preco: 96.0,
+                tags: ["Saudável"],
+              },
+              {
+                nome: "Ravioli de Queijo de Cabra",
+                descricao:
+                  "Massa artesanal com queijo de cabra e nozes, manteiga de sálvia",
+                preco: 78.0,
+                tags: ["Artesanal"],
+              },
+              {
+                nome: "Polvo à Lagareiro",
+                descricao:
+                  "Polvo assado lentamente, batatas ao murro e azeite extra virgem",
+                preco: 120.0,
+                tags: ["Premium", "Especial"],
+              },
+            ],
+          },
+          {
+            id: "2",
+            nome: "Entradas",
+            subtitulo: "pour commencer",
+            produtos: [
+              {
+                nome: "Carpaccio de Carne",
+                descricao:
+                  "Finas lâminas de filé mignon com rúcula, parmesão trufado",
+                preco: 48.0,
+                tags: ["Clássico", "Trufado"],
+              },
+              {
+                nome: "Salada de Burrata",
+                descricao:
+                  "Burrata cremosa, tomates heirloom e redução balsâmica",
+                preco: 42.0,
+                tags: ["Vegetariano"],
+              },
+              {
+                nome: "Ceviche de Peixe Branco",
+                descricao: "Cubos de robalo, leite de tigre, milho crocante",
+                preco: 52.0,
+                tags: ["Fresco", "Cítrico"],
+              },
+              {
+                nome: "Polvo Grelhado",
+                descricao:
+                  "Tentáculos grelhados, batatas rústicas e aioli cítrico",
+                preco: 58.0,
+                tags: ["Premium"],
+              },
+            ],
+          },
+          {
+            id: "3",
+            nome: "Sobremesas",
+            subtitulo: "les desserts",
+            produtos: [
+              {
+                nome: "Tiramisù Clássico",
+                descricao: "Mascarpone, café espresso e cacau amargo",
+                preco: 38.0,
+                tags: ["Clássico"],
+              },
+              {
+                nome: "Cheesecake de Frutas Vermelhas",
+                descricao:
+                  "Cremoso sobre base de biscoito com calda de frutas vermelhas",
+                preco: 42.0,
+                tags: ["Frutado"],
+              },
+              {
+                nome: "Fondant de Chocolate",
+                descricao:
+                  "Bolo quente com núcleo cremoso e sorvete de baunilha",
+                preco: 45.0,
+                tags: ["Quente", "Intenso"],
+              },
+              {
+                nome: "Panna Cotta de Baunilha",
+                descricao: "Sedosa com calda de frutas cítricas e flor de sal",
+                preco: 35.0,
+                tags: ["Leve"],
+              },
+            ],
+          },
+          {
+            id: "4",
+            nome: "Bebidas",
+            subtitulo: "à boire",
+            produtos: [
+              {
+                nome: "Vinho Tinto Malbec",
+                descricao: "Taça 200ml · Valle de Uco, Argentina",
+                preco: 32.0,
+                tags: ["Encorpado"],
+              },
+              {
+                nome: "Espumante Brut",
+                descricao: "Taça 150ml · Método Tradicional",
+                preco: 38.0,
+                tags: ["Fresco"],
+              },
+              {
+                nome: "Coquetel La Maison",
+                descricao:
+                  "Gim, manjericão, limão siciliano e água tônica artesanal",
+                preco: 29.0,
+                tags: ["Autoral"],
+              },
+              {
+                nome: "Água com Gás Gourmet",
+                descricao: "Garrafa 330ml · Importada",
+                preco: 14.0,
+                tags: ["Refrescante"],
+              },
+            ],
+          },
+        ];
+
+        const slidesWrapper = document.getElementById("slidesWrapper");
+        let slides = [];
+        let currentSlide = 0;
+        let intervalId = null;
+
+        function agruparPares(arr) {
+          const pares = [];
+          for (let i = 0; i < arr.length; i += 2) {
+            pares.push(arr.slice(i, i + 2));
+          }
+          return pares;
+        }
+
+        function criarSlide(sessao1, sessao2) {
+          const slideDiv = document.createElement("div");
+          slideDiv.className = "slide";
+
+          const col1 = criarColunaSessao(sessao1);
+          slideDiv.appendChild(col1);
+
+          if (sessao2) {
+            const col2 = criarColunaSessao(sessao2);
+            slideDiv.appendChild(col2);
+          } else {
+            const colVazia = document.createElement("div");
+            colVazia.className = "session-column empty-session";
+            colVazia.innerHTML = "<div>✨</div><p>Em breve</p>";
+            slideDiv.appendChild(colVazia);
+          }
+
+          return slideDiv;
+        }
+
+        function criarColunaSessao(sessao) {
+          const column = document.createElement("div");
+          column.className = "session-column";
+
+          const header = document.createElement("div");
+          header.className = "session-header";
+          header.innerHTML = `
+                    <span class="session-title">${sessao.nome}</span>
+                    <span class="session-subtitle">${sessao.subtitulo || ""}</span>
+                    <div class="divider-ornament">
+                        <span class="line"></span>
+                        <span class="diamond"></span>
+                        <span class="line"></span>
+                    </div>
+                `;
+          column.appendChild(header);
+
+          const productsList = document.createElement("div");
+          productsList.className = "products-list";
+
+          if (sessao.produtos && sessao.produtos.length > 0) {
+            sessao.produtos.forEach((prod) => {
+              const item = document.createElement("div");
+              item.className = "product-item";
+
+              const precoFormatado = prod.preco.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              });
+
+              let tagsHtml = "";
+              if (prod.tags && prod.tags.length > 0) {
+                tagsHtml =
+                  '<div class="product-tags">' +
+                  prod.tags
+                    .map((tag) => `<span class="product-tag">${tag}</span>`)
+                    .join("") +
+                  "</div>";
+              }
+
+              item.innerHTML = `
+                            <div class="product-header">
+                                <span class="product-name">${prod.nome}</span>
+                                <span class="product-dots"></span>
+                                <span class="product-price">R$ ${precoFormatado}</span>
+                            </div>
+                            ${prod.descricao ? `<div class="product-description">${prod.descricao}</div>` : ""}
+                            ${tagsHtml}
+                        `;
+              productsList.appendChild(item);
+            });
+          } else {
+            productsList.innerHTML =
+              '<div class="empty-session">Nenhum produto disponível</div>';
+          }
+
+          column.appendChild(productsList);
+          return column;
+        }
+
+        function montarCarousel() {
+          slidesWrapper.innerHTML = "";
+          const pares = agruparPares(sessoes);
+          slides = [];
+
+          pares.forEach((par) => {
+            const slide = criarSlide(par[0], par[1]);
+            slidesWrapper.appendChild(slide);
+            slides.push(slide);
+          });
+
+          if (slides.length > 0) {
+            slides[0].classList.add("active");
+            currentSlide = 0;
+          }
+        }
+
+        function irParaSlide(index) {
+          if (slides.length === 0) return;
+          slides.forEach((s) => s.classList.remove("active"));
+          slides[index].classList.add("active");
+          currentSlide = index;
+        }
+
+        function proximoSlide() {
+          if (slides.length === 0) return;
+          const next = (currentSlide + 1) % slides.length;
+          irParaSlide(next);
+        }
+
+        function iniciarRotacao() {
+          if (intervalId) clearInterval(intervalId);
+          intervalId = setInterval(proximoSlide, 10000);
+        }
+
+        montarCarousel();
+        if (slides.length > 1) {
+          iniciarRotacao();
+        }
+
+        const container = document.querySelector(".carousel-container");
+        container.addEventListener("mouseenter", () => {
+          if (intervalId) clearInterval(intervalId);
+        });
+        container.addEventListener("mouseleave", () => {
+          if (slides.length > 1) iniciarRotacao();
+        });
+
+        console.log(
+          "🍳 Exibição com fundo #e8d5aa · " + slides.length + " slide(s)",
+        );
+      })();
+    </script>
+  </body>
+</html>
