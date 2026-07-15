@@ -7,7 +7,7 @@
     "dev": "prisma generate && prisma db push && tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "seed": "ts-node scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.8.0",
@@ -33,6 +33,7 @@
     "@types/node": "^26.1.1",
     "@types/uuid": "^11.0.0",
     "prisma": "^7.8.0",
+    "ts-node": "^10.9.2",
     "tsx": "^4.23.1",
     "typescript": "^7.0.2"
   }

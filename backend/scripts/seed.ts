@@ -1,57 +1,26 @@
 import prisma from "../src/config/database";
-import bcrypt from "bcryptjs";
 
 async function seed() {
   console.log("🌱 Iniciando seed...");
 
-  // Criar usuário admin
-  const adminPassword = await bcrypt.hash("admin123", 10);
-  const admin = await prisma.user.upsert({
-    where: { username: "admin" },
-    update: {},
-    create: {
-      username: "admin",
-      password: adminPassword,
-      role: "admin",
-    },
-  });
-  console.log(`✅ Usuário admin criado: ${admin.username}`);
+  const existingSessoes = await prisma.sessao.count();
 
-  // Criar sessões
-  const sessoes = await Promise.all([
-    prisma.sessao.upsert({
-      where: { slug: "pratos" },
-      update: {},
-      create: {
-        nome: "Pratos Principais",
-        slug: "pratos",
-        videoUrl:
-          "https://videos.pexels.com/video-files/4761687/4761687-sd_640_360_24fps.mp4",
-      },
-    }),
-    prisma.sessao.upsert({
-      where: { slug: "entradas" },
-      update: {},
-      create: {
-        nome: "Entradas",
-        slug: "entradas",
-        videoUrl:
-          "https://videos.pexels.com/video-files/4065393/4065393-sd_640_360_25fps.mp4",
-      },
-    }),
-    prisma.sessao.upsert({
-      where: { slug: "sobremesas" },
-      update: {},
-      create: {
-        nome: "Sobremesas",
-        slug: "sobremesas",
-        videoUrl:
-          "https://videos.pexels.com/video-files/4107551/4107551-sd_640_360_25fps.mp4",
-      },
-    }),
-  ]);
+  if (existingSessoes === 0) {
+    console.log("Criando sessões iniciais...");
+    const sessoesData = [
+      { nome: "Pratos Principais" },
+      { nome: "Entradas" },
+      { nome: "Sobremesas" },
+    ];
 
-  console.log(`✅ ${sessoes.length} sessões criadas`);
+    await prisma.sessao.createMany({
+      data: sessoesData,
+    });
+    
+    console.log(`✅ ${sessoesData.length} sessões criadas.`);
+  } else {
+    console.log(`ℹ️ O banco já possui ${existingSessoes} sessões. Pulando criação.`);
+  }
 
   // Criar produtos (opcional)
   // ... (pode adicionar produtos aqui)
