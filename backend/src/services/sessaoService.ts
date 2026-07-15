@@ -17,14 +17,7 @@ export class SessaoService {
     });
   }
 
-  static async getBySlug(slug: string) {
-    return prisma.sessao.findUnique({
-      where: { slug },
-      include: { produtos: true },
-    });
-  }
-
-  static async create(data: { nome: string; slug: string; videoUrl?: string }) {
+  static async create(data: { nome: string }) {
     return prisma.sessao.create({
       data,
     });

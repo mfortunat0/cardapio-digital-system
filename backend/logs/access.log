@@ -3,3 +3,14 @@ POST /api/auth/login 200 165 - 5.990 ms {"username":"admin","password":"admin"}
 POST /api/auth/login 200 175 - 6.215 ms {"username":"admin","password":"admin"}
 GET /api/produtos 200 2 - 48.312 ms {"username":"admin","password":"admin"}
 GET /api/sessoes 200 2 - 2.833 ms {"username":"admin","password":"admin"}
+POST /api/sessao 404 150 - 1.438 ms {"nome":"teste"}
+POST /api/sessoes 401 32 - 2.266 ms {"nome":"teste"}
+POST /api/sessoes 201 127 - 54.414 ms {"nome":"teste"}
+GET /api/sessoes 200 143 - 46.585 ms {"username":"admin","password":"admin"}
+PUT /api/sessoes 404 150 - 1.036 ms {"nome":"teste1"}
+PUT /api/sessoes/cmrmi02uu0000tdijipn3192z 200 128 - 28.913 ms {"nome":"teste1"}
+GET /api/sessoes 200 144 - 1.783 ms {"username":"admin","password":"admin"}
+POST /api/produtos 401 32 - 2.070 ms {"sessaoId":"cmrmi02uu0000tdijipn3192z","nome":"teste_p","descricao":"teste_p","preco":12}
+POST /api/produtos 401 32 - 0.502 ms {"sessaoId":"cmrmi02uu0000tdijipn3192z","nome":"teste_p","descricao":"teste_p","preco":12}
+POST /api/produtos 401 39 - 0.702 ms {"sessaoId":"cmrmi02uu0000tdijipn3192z","nome":"teste_p","descricao":"teste_p","preco":12}
+POST /api/produtos 201 339 - 72.643 ms {"sessaoId":"cmrmi02uu0000tdijipn3192z","nome":"teste_p","descricao":"teste_p","preco":12}

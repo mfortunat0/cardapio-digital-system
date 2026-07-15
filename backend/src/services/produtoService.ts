@@ -22,8 +22,6 @@ export class ProdutoService {
     nome: string;
     descricao?: string;
     preco: number;
-    tags: string[];
-    imagens: string[];
   }) {
     return prisma.produto.create({
       data: {
@@ -31,8 +29,6 @@ export class ProdutoService {
         nome: data.nome,
         descricao: data.descricao,
         preco: data.preco,
-        tags: JSON.stringify(data.tags),
-        imagens: JSON.stringify(data.imagens),
       },
       include: { sessao: true },
     });
@@ -44,14 +40,10 @@ export class ProdutoService {
       nome?: string;
       descricao?: string;
       preco?: number;
-      tags?: string[];
-      imagens?: string[];
       sessaoId?: string;
     },
   ) {
     const updateData: any = { ...data };
-    if (data.tags) updateData.tags = JSON.stringify(data.tags);
-    if (data.imagens) updateData.imagens = JSON.stringify(data.imagens);
 
     return prisma.produto.update({
       where: { id },

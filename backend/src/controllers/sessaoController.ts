@@ -27,12 +27,12 @@ export class SessaoController {
 
   static async create(req: Request, res: Response) {
     try {
-      const { nome, slug, videoUrl } = req.body;
-      if (!nome || !slug) {
-        return res.status(400).json({ error: "Nome e slug são obrigatórios" });
+      const { nome } = req.body;
+      if (!nome) {
+        return res.status(400).json({ error: "Nome é obrigatório" });
       }
 
-      const sessao = await SessaoService.create({ nome, slug, videoUrl });
+      const sessao = await SessaoService.create({ nome });
 
       // Emitir evento via Socket.io
       const io = getSocket();
@@ -47,11 +47,12 @@ export class SessaoController {
   static async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { nome, slug, videoUrl } = req.body;
+      const { nome } = req.body;
 
-      const sessao = await SessaoService.update(id as string, { nome, slug, videoUrl });
+      const sessao = await SessaoService.update(id as string, {
+        nome,
+      });
 
-      // Emitir evento via Socket.io
       const io = getSocket();
       io.emit("sessao:updated", sessao);
 

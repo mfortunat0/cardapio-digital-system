@@ -10,11 +10,8 @@ datasource db {
 model Sessao {
   id        String   @id @default(cuid())
   nome      String
-  slug      String   @unique
-  videoUrl  String?  // URL do vídeo (pode ser caminho ou URL externa)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   produtos  Produto[]
 }
 
@@ -25,8 +22,6 @@ model Produto {
   nome        String
   descricao   String?
   preco       Float
-  tags        String   // JSON string array
-  imagens     String   // JSON string array de URLs
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
