@@ -1,174 +1,30 @@
-// src/pages/Admin/Admin.tsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./index.module.css";
+import type { Produto, Sessao } from "../../type";
+import { useNavigate } from "react-router-dom";
+import {
+  apiCreateProduto,
+  apiGetProdutos,
+  apiGetSessoes,
+  apiValidateToken,
+} from "../../util/api";
 
-// ==================== TIPOS ====================
-export interface Sessao {
-  id: string;
-  nome: string;
-  slug: string;
-  videoUrl: string;
-}
-
-export interface Produto {
-  id: string;
-  sessaoId: string;
-  nome: string;
-  descricao: string;
-  preco: number;
-  tags: string[];
-}
-
-// ==================== SIMULAÇÃO DE API ====================
-// Essas funções serão substituídas por chamadas reais à API
-let sessoesMock: Sessao[] = [
-  {
-    id: "1",
-    nome: "Pratos Principais",
-    slug: "pratos",
-    videoUrl:
-      "https://videos.pexels.com/video-files/4761687/4761687-sd_640_360_24fps.mp4",
-  },
-  {
-    id: "2",
-    nome: "Entradas",
-    slug: "entradas",
-    videoUrl:
-      "https://videos.pexels.com/video-files/4065393/4065393-sd_640_360_25fps.mp4",
-  },
-  {
-    id: "3",
-    nome: "Sobremesas",
-    slug: "sobremesas",
-    videoUrl:
-      "https://videos.pexels.com/video-files/4107551/4107551-sd_640_360_25fps.mp4",
-  },
-];
-
-let produtosMock: Produto[] = [
-  {
-    id: "101",
-    sessaoId: "1",
-    nome: "Risoto de Cogumelos Trufados",
-    descricao: "Arroz arbóreo cremoso com mix de cogumelos selvagens",
-    preco: 89.0,
-    tags: ["Trufado", "Vegetariano"],
-  },
-  {
-    id: "102",
-    sessaoId: "1",
-    nome: "Filé Mignon ao Molho Madeira",
-    descricao: "Medalhão grelhado, molho madeira envelhecido",
-    preco: 112.0,
-    tags: ["Clássico", "Premium"],
-  },
-  {
-    id: "103",
-    sessaoId: "2",
-    nome: "Carpaccio de Carne",
-    descricao: "Finas lâminas de filé mignon com rúcula",
-    preco: 48.0,
-    tags: ["Clássico"],
-  },
-  {
-    id: "104",
-    sessaoId: "3",
-    nome: "Tiramisù Clássico",
-    descricao: "Camadas de mascarpone e café",
-    preco: 38.0,
-    tags: ["Clássico"],
-  },
-];
-
-// Funções simuladas (substituir por API real)
-const apiGetSessoes = (): Promise<Sessao[]> =>
-  Promise.resolve([...sessoesMock]);
-const apiGetProdutos = (): Promise<Produto[]> =>
-  Promise.resolve([...produtosMock]);
-
-const apiSalvarSessao = (
-  dados: Omit<Sessao, "id"> & { id?: string },
-  videoFile?: File,
-): Promise<{ sucesso: boolean }> => {
-  return new Promise((resolve) => {
-    if (dados.id) {
-      const idx = sessoesMock.findIndex((s) => s.id === dados.id);
-      if (idx !== -1) {
-        sessoesMock[idx] = {
-          ...sessoesMock[idx],
-          ...dados,
-          videoUrl: videoFile
-            ? URL.createObjectURL(videoFile)
-            : sessoesMock[idx].videoUrl,
-        };
-      }
-    } else {
-      const nova: Sessao = {
-        id: Date.now().toString(),
-        ...dados,
-        videoUrl: videoFile ? URL.createObjectURL(videoFile) : "",
-      };
-      sessoesMock.push(nova);
-    }
-    resolve({ sucesso: true });
-  });
-};
-
-const apiExcluirSessao = (id: string): Promise<{ sucesso: boolean }> => {
-  return new Promise((resolve) => {
-    sessoesMock = sessoesMock.filter((s) => s.id !== id);
-    produtosMock = produtosMock.filter((p) => p.sessaoId !== id);
-    resolve({ sucesso: true });
-  });
-};
-
-const apiSalvarProduto = (
-  dados: Omit<Produto, "id"> & { id?: string },
-): Promise<{ sucesso: boolean }> => {
-  return new Promise((resolve) => {
-    if (dados.id) {
-      const idx = produtosMock.findIndex((p) => p.id === dados.id);
-      if (idx !== -1) {
-        produtosMock[idx] = { ...produtosMock[idx], ...dados };
-      }
-    } else {
-      const novo: Produto = {
-        id: Date.now().toString(),
-        ...dados,
-      };
-      produtosMock.push(novo);
-    }
-    resolve({ sucesso: true });
-  });
-};
-
-const apiExcluirProduto = (id: string): Promise<{ sucesso: boolean }> => {
-  return new Promise((resolve) => {
-    produtosMock = produtosMock.filter((p) => p.id !== id);
-    resolve({ sucesso: true });
-  });
-};
-
-// ==================== COMPONENTE PRINCIPAL ====================
-const Admin: React.FC = () => {
-  // Estados
+export function Admin() {
+  const navigate = useNavigate();
+  const [tokenIsValid, setTokenIsValid] = useState(false);
   const [sessoes, setSessoes] = useState<Sessao[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [activeTab, setActiveTab] = useState<"sessoes" | "produtos">("sessoes");
   const [filterSessaoId, setFilterSessaoId] = useState<string>("");
 
-  // Estados para modais
   const [modalSessaoAberto, setModalSessaoAberto] = useState(false);
   const [modalProdutoAberto, setModalProdutoAberto] = useState(false);
   const [sessaoEditando, setSessaoEditando] = useState<Sessao | null>(null);
   const [produtoEditando, setProdutoEditando] = useState<Produto | null>(null);
 
-  // Estados do formulário de sessão
-  const [sessaoForm, setSessaoForm] = useState({ id: "", nome: "", slug: "" });
+  const [sessaoForm, setSessaoForm] = useState({ id: "", nome: "" });
   const [sessaoVideoFile, setSessaoVideoFile] = useState<File | null>(null);
-  const [sessaoVideoFileName, setSessaoVideoFileName] = useState("");
 
-  // Estados do formulário de produto
   const [produtoForm, setProdutoForm] = useState({
     id: "",
     sessaoId: "",
@@ -178,15 +34,14 @@ const Admin: React.FC = () => {
     tags: "",
   });
 
-  // Toast
   const [toast, setToast] = useState({
     message: "",
     isError: false,
     show: false,
   });
+
   const toastTimeoutRef = useRef<number | null>(null);
 
-  // Função para exibir toast
   const showToast = (message: string, isError = false) => {
     if (toastTimeoutRef.current) {
       clearTimeout(toastTimeoutRef.current);
@@ -197,7 +52,6 @@ const Admin: React.FC = () => {
     }, 3000);
   };
 
-  // Carregar dados iniciais
   const carregarDados = useCallback(async () => {
     const [sessoesData, produtosData] = await Promise.all([
       apiGetSessoes(),
@@ -207,22 +61,12 @@ const Admin: React.FC = () => {
     setProdutos(produtosData);
   }, []);
 
-  useEffect(() => {
-    carregarDados();
-  }, [carregarDados]);
-
-  // Abrir modal de sessão
   const abrirModalSessao = (sessao?: Sessao) => {
     setSessaoEditando(sessao || null);
     setSessaoForm({
       id: sessao?.id || "",
       nome: sessao?.nome || "",
-      slug: sessao?.slug || "",
     });
-    setSessaoVideoFile(null);
-    setSessaoVideoFileName(
-      sessao?.videoUrl ? "Vídeo atual (substitua se desejar)" : "",
-    );
     setModalSessaoAberto(true);
   };
 
@@ -230,10 +74,8 @@ const Admin: React.FC = () => {
     setModalSessaoAberto(false);
     setSessaoEditando(null);
     setSessaoVideoFile(null);
-    setSessaoVideoFileName("");
   };
 
-  // Abrir modal de produto
   const abrirModalProduto = (produto?: Produto) => {
     if (!produto && sessoes.length === 0) {
       showToast("Crie ao menos uma sessão antes de adicionar produtos.", true);
@@ -256,31 +98,17 @@ const Admin: React.FC = () => {
     setProdutoEditando(null);
   };
 
-  // Handlers de submit
-  const handleSubmitSessao = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { id, nome, slug } = sessaoForm;
-    if (!nome.trim() || !slug.trim()) {
-      showToast("Preencha nome e slug.", true);
-      return;
-    }
-    await apiSalvarSessao(
-      { id: id || undefined, nome: nome.trim(), slug: slug.trim() },
-      sessaoVideoFile || undefined,
-    );
-    showToast("Sessão salva com sucesso!");
-    fecharModalSessao();
-    carregarDados();
-  };
-
   const handleSubmitProduto = async (e: React.FormEvent) => {
     e.preventDefault();
     const { id, sessaoId, nome, descricao, preco, tags } = produtoForm;
+
     if (!sessaoId || !nome.trim() || !preco) {
       showToast("Preencha campos obrigatórios.", true);
       return;
     }
+
     const precoNum = parseFloat(preco);
+
     if (isNaN(precoNum) || precoNum < 0) {
       showToast("Preço inválido.", true);
       return;
@@ -291,16 +119,19 @@ const Admin: React.FC = () => {
           .map((t) => t.trim())
           .filter((t) => t)
       : [];
-    await apiSalvarProduto({
-      id: id || undefined,
+
+    await apiCreateProduto({
       sessaoId,
       nome: nome.trim(),
       descricao: descricao.trim(),
       preco: precoNum,
-      tags: tagsArray,
+      tags: tagsArray.join(";"),
     });
+
     showToast("Produto salvo!");
+
     fecharModalProduto();
+
     carregarDados();
   };
 
@@ -423,6 +254,74 @@ const Admin: React.FC = () => {
       );
     });
   };
+
+  // const validateToken = async () => {
+  //   const token = localStorage.getItem("token");
+
+  //   if (!token) {
+  //     showToast("Token não encontrado", true);
+  //     navigate("/login");
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await axios.post(
+  //       `${import.meta.env.VITE_SERVER_API}/login/validate`,
+  //       {},
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       },
+  //     );
+  //     if (response.status !== 200) {
+  //       navigate("/login");
+  //     } else {
+  //       return token;
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //     navigate("/login");
+  //   }
+  // };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const validate = async () => {
+      try {
+        const response = await apiValidateToken({ token });
+        if (response.status !== 200) {
+          navigate("/login");
+        } else {
+          setTokenIsValid(true);
+        }
+      } catch (error) {
+        console.log(error);
+        navigate("/login");
+      }
+    };
+    validate();
+
+    const getAllSessoes = async () => {
+      try {
+        const response = await apiGetSessoes();
+        setSessoes(response);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getAllSessoes();
+
+    const getAllProdutos = async () => {
+      try {
+        const response = await apiGetProdutos();
+        setProdutos(response);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getAllProdutos();
+  }, []);
 
   return (
     <div className={styles["admin-container"]}>
@@ -670,7 +569,6 @@ const Admin: React.FC = () => {
         </div>
       )}
 
-      {/* Toast */}
       <div
         className={`${styles.toast} ${toast.show ? styles.show : ""}`}
         style={{ background: toast.isError ? "#c0392b" : "#2b2418" }}
@@ -679,6 +577,4 @@ const Admin: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default Admin;
+}

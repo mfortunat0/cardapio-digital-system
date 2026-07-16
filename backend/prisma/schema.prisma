@@ -20,7 +20,8 @@ model Produto {
   sessaoId    String
   sessao      Sessao   @relation(fields: [sessaoId], references: [id], onDelete: Cascade)
   nome        String
-  descricao   String?
+  descricao   String
+  tags        String?
   preco       Float
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

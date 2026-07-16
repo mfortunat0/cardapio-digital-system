@@ -165,7 +165,6 @@ const CardapioFora: React.FC = () => {
   >([]);
   const intervalRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const slideTimeoutRef = useRef<number | null>(null);
 
   // Agrupa as seções em pares (duas colunas por slide)
   useEffect(() => {

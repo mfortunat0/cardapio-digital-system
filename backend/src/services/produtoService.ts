@@ -20,8 +20,9 @@ export class ProdutoService {
   static async create(data: {
     sessaoId: string;
     nome: string;
-    descricao?: string;
+    descricao: string;
     preco: number;
+    tags?: string;
   }) {
     return prisma.produto.create({
       data: {
@@ -29,6 +30,7 @@ export class ProdutoService {
         nome: data.nome,
         descricao: data.descricao,
         preco: data.preco,
+        tags: data.tags,
       },
       include: { sessao: true },
     });

@@ -248,7 +248,7 @@ const ModalCarousel: React.FC<ModalCarouselProps> = ({ item, onClose }) => {
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [onClose, goToPrev, goToNext]);
 
   if (!item) return null;
 
@@ -486,9 +486,10 @@ const CardapioBase: React.FC = () => {
           }
         });
 
-        if (mostVisibleSection && maxRatio > 0.08) {
-          const videoKey = mostVisibleSection.getAttribute("data-video");
-          const sectionId = mostVisibleSection.id;
+        if (mostVisibleSection != null && maxRatio > 0.08) {
+          const el = mostVisibleSection as Element;
+          const videoKey = el.getAttribute("data-video");
+          const sectionId = (el as HTMLElement).id;
           if (videoKey && videoKey !== activeVideoKey) {
             switchVideo(videoKey);
             setActiveSectionId(sectionId);

@@ -6,7 +6,9 @@ export class AuthService {
     const adminPassword = process.env.ADMIN_PASSWORD;
 
     if (!adminUsername || !adminPassword) {
-      throw new Error("Credenciais do administrador não configuradas no servidor");
+      throw new Error(
+        "Credenciais do administrador não configuradas no servidor",
+      );
     }
 
     if (username !== adminUsername || password !== adminPassword) {
