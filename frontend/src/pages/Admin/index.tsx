@@ -36,7 +36,8 @@ export function Admin() {
   const [sessaoEditando, setSessaoEditando] = useState<Sessao | null>(null);
   const [produtoEditando, setProdutoEditando] = useState<Produto | null>(null);
 
-  const [sessaoForm, setSessaoForm] = useState({ id: "", nome: "" });
+  const [sessaoNome, setSessaoNome] = useState<string>("");
+  const [sessaoMidiaUrl, setSessaoMidiaUrl] = useState<FileWithPreview[]>([]);
 
   const [produtoNome, setProdutoNome] = useState<string>("");
   const [produtoDescricao, setProdutoDescricao] = useState<string>("");
@@ -74,10 +75,7 @@ export function Admin() {
 
   const abrirModalSessao = (sessao?: Sessao) => {
     setSessaoEditando(sessao || null);
-    setSessaoForm({
-      id: sessao?.id || "",
-      nome: sessao?.nome || "",
-    });
+    setSessaoNome(sessao?.nome || "");
     setModalSessaoAberto(true);
   };
 
@@ -145,8 +143,8 @@ export function Admin() {
           .filter((t) => t)
       : [];
 
+    // eslint-disable-next-line no-useless-assignment
     let finalMidiaUrl: string[] = [];
-    console.log(finalMidiaUrl);
 
     const existingUrls = produtoMidiaUrl
       .filter((m) => !m.file && m.preview.rawUrl)
@@ -211,9 +209,8 @@ export function Admin() {
 
   const handleSubmitSessao = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { nome } = sessaoForm;
 
-    if (!nome.trim()) {
+    if (!sessaoNome.trim()) {
       showToast("Preencha campos obrigatórios.", true);
       return;
     }
@@ -221,11 +218,11 @@ export function Admin() {
     if (sessaoEditando) {
       await apiUpdateSessao({
         id: sessaoEditando.id,
-        nome: nome.trim(),
+        nome: sessaoNome.trim(),
         token,
       });
     } else {
-      await apiCreateSessao({ nome: nome.trim(), token });
+      await apiCreateSessao({ nome: sessaoNome.trim(), token });
     }
 
     showToast("Sessão salva!");
@@ -515,17 +512,28 @@ export function Admin() {
                   {sessaoEditando ? "Editar Sessão" : "Nova Sessão"}
                 </h2>
                 <form onSubmit={(e) => handleSubmitSessao(e)}>
-                  <input type="hidden" value={sessaoForm.id} />
                   <div className={styles["form-group"]}>
                     <label>Nome da Sessão</label>
                     <input
                       type="text"
-                      value={sessaoForm.nome}
-                      onChange={(e) =>
-                        setSessaoForm({ ...sessaoForm, nome: e.target.value })
-                      }
+                      value={sessaoNome}
+                      onChange={(e) => setSessaoNome(e.target.value)}
                       required
                       placeholder="Ex: Pratos Principais"
+                    />
+                  </div>
+                  <div className={styles["form-group"]}>
+                    <label>Vídeo da Sessão</label>
+                    <input
+                      type="file"
+                      name="midiaUrl"
+                      id="midiaUrl"
+                      accept="video/mp4,video/webm,video/ogg"
+                      onChange={(e) =>
+                        setSessaoMidiaUrl(
+                          e.target.files?.[0] ? [e.target.files[0]] : [],
+                        )
+                      }
                     />
                   </div>
                   {/* <div className={styles["form-group"]}>
