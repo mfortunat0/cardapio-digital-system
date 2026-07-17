@@ -5,16 +5,6 @@ export const api = axios.create({
   baseURL: import.meta.env.VITE_SERVER_API,
 });
 
-export const apiGetSessoes = async () => {
-  try {
-    const response = await api.get<Sessao[]>("/sessoes");
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-};
-
 export const apiGetProdutos = async () => {
   try {
     const response = await api.get<Produto[]>("/produtos");
@@ -25,15 +15,141 @@ export const apiGetProdutos = async () => {
   }
 };
 
-export const apiCreateProduto = async (
-  produto: Pick<Produto, "nome" | "descricao" | "preco" | "tags" | "sessaoId">,
-) => {
+export const apiCreateProduto = async ({
+  nome,
+  descricao,
+  preco,
+  tags,
+  sessaoId,
+  token,
+}: Pick<Produto, "nome" | "descricao" | "preco" | "tags" | "sessaoId"> & {
+  token: string;
+}) => {
   try {
-    const response = await api.post("/produtos", produto);
-    return response.data;
+    const response = await api.post(
+      "/produtos",
+      { nome, descricao, preco, tags, sessaoId },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response;
   } catch (error) {
     console.log(error);
     return null;
+  }
+};
+
+export const apiDeleteProduto = async ({
+  id,
+  token,
+}: {
+  id: string;
+  token: string;
+}) => {
+  try {
+    await api.delete(`/produtos/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
+export const apiUpdateProduto = async ({
+  id,
+  nome,
+  descricao,
+  preco,
+  tags,
+  sessaoId,
+  token,
+}: Pick<
+  Produto,
+  "id" | "nome" | "descricao" | "preco" | "tags" | "sessaoId"
+> & {
+  token: string;
+}) => {
+  try {
+    const response = await api.put(
+      `/produtos/${id}`,
+      { nome, descricao, preco, tags, sessaoId },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const apiGetSessoes = async () => {
+  try {
+    const response = await api.get<Sessao[]>("/sessoes");
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+export const apiCreateSessao = async ({
+  nome,
+  token,
+}: {
+  nome: string;
+  token: string;
+}) => {
+  try {
+    const response = await api.post(
+      "/sessoes",
+      { nome },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const apiUpdateSessao = async ({
+  id,
+  nome,
+  token,
+}: {
+  id: string;
+  nome: string;
+  token: string;
+}) => {
+  try {
+    const response = await api.put(
+      `/sessoes/${id}`,
+      { nome },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const apiDeleteSessao = async ({
+  id,
+  token,
+}: {
+  id: string;
+  token: string;
+}) => {
+  try {
+    await api.delete(`/sessoes/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
   }
 };
 

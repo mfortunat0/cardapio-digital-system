@@ -13,7 +13,16 @@ export interface Produto {
   descricao: string;
   tags?: string | null;
   preco: number;
+  midiaUrl: string[];
   createdAt: string;
   updatedAt: string;
   sessao: Sessao;
+}
+
+export interface FileWithPreview {
+  file: File;
+  preview: {
+    url: string;
+    type: string;
+  };
 }

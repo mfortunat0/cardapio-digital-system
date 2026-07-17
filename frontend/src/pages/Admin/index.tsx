@@ -1,15 +1,28 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type FormEvent,
+} from "react";
 import styles from "./index.module.css";
-import type { Produto, Sessao } from "../../type";
+import type { FileWithPreview, Produto, Sessao } from "../../type";
 import { useNavigate } from "react-router-dom";
 import {
   apiCreateProduto,
+  apiCreateSessao,
+  apiDeleteProduto,
+  apiDeleteSessao,
   apiGetProdutos,
   apiGetSessoes,
+  apiUpdateProduto,
+  apiUpdateSessao,
   apiValidateToken,
 } from "../../util/api";
 
 export function Admin() {
+  const token = localStorage.getItem("token");
+
   const navigate = useNavigate();
   const [tokenIsValid, setTokenIsValid] = useState(false);
   const [sessoes, setSessoes] = useState<Sessao[]>([]);
@@ -23,16 +36,13 @@ export function Admin() {
   const [produtoEditando, setProdutoEditando] = useState<Produto | null>(null);
 
   const [sessaoForm, setSessaoForm] = useState({ id: "", nome: "" });
-  const [sessaoVideoFile, setSessaoVideoFile] = useState<File | null>(null);
 
-  const [produtoForm, setProdutoForm] = useState({
-    id: "",
-    sessaoId: "",
-    nome: "",
-    descricao: "",
-    preco: "",
-    tags: "",
-  });
+  const [produtoNome, setProdutoNome] = useState<string>("");
+  const [produtoDescricao, setProdutoDescricao] = useState<string>("");
+  const [produtoPreco, setProdutoPreco] = useState<string>("");
+  const [produtoTags, setProdutoTags] = useState<string>("");
+  const [produtoMidiaUrl, setProdutoMidiaUrl] = useState<FileWithPreview[]>([]);
+  const [produtoSessaoId, setProdutoSessaoId] = useState<string>("");
 
   const [toast, setToast] = useState({
     message: "",
@@ -73,7 +83,6 @@ export function Admin() {
   const fecharModalSessao = () => {
     setModalSessaoAberto(false);
     setSessaoEditando(null);
-    setSessaoVideoFile(null);
   };
 
   const abrirModalProduto = (produto?: Produto) => {
@@ -81,16 +90,21 @@ export function Admin() {
       showToast("Crie ao menos uma sessão antes de adicionar produtos.", true);
       return;
     }
+
     setProdutoEditando(produto || null);
-    setProdutoForm({
-      id: produto?.id || "",
-      sessaoId: produto?.sessaoId || (sessoes.length > 0 ? sessoes[0].id : ""),
-      nome: produto?.nome || "",
-      descricao: produto?.descricao || "",
-      preco: produto?.preco ? produto.preco.toString() : "",
-      tags: produto?.tags ? produto.tags.join(", ") : "",
-    });
+
+    setProdutoNome(produto?.nome || "");
+    setProdutoDescricao(produto?.descricao || "");
+    setProdutoPreco(produto?.preco.toString() || "");
+    setProdutoTags(produto?.tags || "");
+    setProdutoSessaoId(produto?.sessaoId || "");
+
     setModalProdutoAberto(true);
+  };
+
+  const handleRemoveMedia = (index: number) => {
+    const newMidiaUrl = produtoMidiaUrl.filter((_, i) => i !== index);
+    setProdutoMidiaUrl(newMidiaUrl);
   };
 
   const fecharModalProduto = () => {
@@ -98,35 +112,47 @@ export function Admin() {
     setProdutoEditando(null);
   };
 
-  const handleSubmitProduto = async (e: React.FormEvent) => {
+  const handleSubmitProduto = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { id, sessaoId, nome, descricao, preco, tags } = produtoForm;
 
-    if (!sessaoId || !nome.trim() || !preco) {
+    if (!produtoSessaoId || !produtoNome.trim() || !produtoPreco) {
       showToast("Preencha campos obrigatórios.", true);
       return;
     }
 
-    const precoNum = parseFloat(preco);
+    const precoNum = parseFloat(produtoPreco);
 
     if (isNaN(precoNum) || precoNum < 0) {
       showToast("Preço inválido.", true);
       return;
     }
-    const tagsArray = tags
-      ? tags
+    const tagsArray = produtoTags
+      ? produtoTags
           .split(",")
           .map((t) => t.trim())
           .filter((t) => t)
       : [];
 
-    await apiCreateProduto({
-      sessaoId,
-      nome: nome.trim(),
-      descricao: descricao.trim(),
-      preco: precoNum,
-      tags: tagsArray.join(";"),
-    });
+    if (produtoEditando) {
+      await apiUpdateProduto({
+        id: produtoEditando.id,
+        sessaoId: produtoSessaoId,
+        nome: produtoNome.trim(),
+        descricao: produtoDescricao.trim(),
+        preco: precoNum,
+        tags: tagsArray.join(","),
+        token,
+      });
+    } else {
+      await apiCreateProduto({
+        sessaoId: produtoSessaoId,
+        nome: produtoNome.trim(),
+        descricao: produtoDescricao.trim(),
+        preco: precoNum,
+        tags: tagsArray.join(","),
+        token,
+      });
+    }
 
     showToast("Produto salvo!");
 
@@ -135,7 +161,32 @@ export function Admin() {
     carregarDados();
   };
 
-  // Excluir
+  const handleSubmitSessao = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const { nome } = sessaoForm;
+
+    if (!nome.trim()) {
+      showToast("Preencha campos obrigatórios.", true);
+      return;
+    }
+
+    if (sessaoEditando) {
+      await apiUpdateSessao({
+        id: sessaoEditando.id,
+        nome: nome.trim(),
+        token,
+      });
+    } else {
+      await apiCreateSessao({ nome: nome.trim(), token });
+    }
+
+    showToast("Sessão salva!");
+
+    fecharModalSessao();
+
+    carregarDados();
+  };
+
   const handleExcluirSessao = async (id: string) => {
     if (
       !confirm(
@@ -143,24 +194,31 @@ export function Admin() {
       )
     )
       return;
-    await apiExcluirSessao(id);
-    showToast("Sessão removida.");
-    carregarDados();
+    const ok = await apiDeleteSessao({ id, token });
+    if (ok) {
+      showToast("Sessão removida.");
+      carregarDados();
+    } else {
+      showToast("Erro ao remover sessão.", true);
+    }
   };
 
   const handleExcluirProduto = async (id: string) => {
     if (!confirm("Excluir este produto?")) return;
-    await apiExcluirProduto(id);
-    showToast("Produto removido.");
-    carregarDados();
+
+    const ok = await apiDeleteProduto({ id, token });
+    if (ok) {
+      showToast("Produto removido.");
+      carregarDados();
+    } else {
+      showToast("Erro ao remover produto.", true);
+    }
   };
 
-  // Filtro de produtos
   const produtosFiltrados = filterSessaoId
     ? produtos.filter((p) => p.sessaoId === filterSessaoId)
     : produtos;
 
-  // Renderização das listas
   const renderSessoes = () => {
     if (sessoes.length === 0) {
       return (
@@ -169,24 +227,24 @@ export function Admin() {
         </div>
       );
     }
-    return sessoes.map((s) => (
-      <div key={s.id} className={styles.card}>
+    return sessoes.map((sessao) => (
+      <div key={sessao.id} className={styles.card}>
         <div className={styles["card-info"]}>
-          <div className={styles["card-title"]}>{s.nome}</div>
-          <div className={styles["card-meta"]}>
+          <div className={styles["card-title"]}>{sessao.nome}</div>
+          {/* <div className={styles["card-meta"]}>
             Slug: {s.slug} | Vídeo: {s.videoUrl ? "✅" : "❌"}
-          </div>
+          </div> */}
         </div>
         <div className={styles["card-actions"]}>
           <button
             className={`${styles.btn} ${styles["btn-outline"]} ${styles["btn-sm"]}`}
-            onClick={() => abrirModalSessao(s)}
+            onClick={() => abrirModalSessao(sessao)}
           >
             ✏️ Editar
           </button>
           <button
             className={`${styles.btn} ${styles["btn-danger"]} ${styles["btn-sm"]}`}
-            onClick={() => handleExcluirSessao(s.id)}
+            onClick={() => handleExcluirSessao(sessao.id)}
           >
             🗑️ Excluir
           </button>
@@ -203,23 +261,23 @@ export function Admin() {
         </div>
       );
     }
-    return produtosFiltrados.map((p) => {
-      const sessao = sessoes.find((s) => s.id === p.sessaoId);
+    return produtosFiltrados.map((produto) => {
+      const sessao = sessoes.find((s) => s.id === produto.sessaoId);
       return (
-        <div key={p.id} className={styles.card}>
+        <div key={produto.id} className={styles.card}>
           <div className={styles["card-info"]}>
             <div className={styles["card-title"]}>
-              {p.nome}{" "}
+              {produto.nome}{" "}
               <span style={{ color: "var(--gold-dark)", marginLeft: 10 }}>
-                R$ {p.preco.toFixed(2)}
+                R$ {produto.preco.toFixed(2)}
               </span>
             </div>
             <div className={styles["card-meta"]}>
-              {p.descricao || ""} | Sessão: {sessao ? sessao.nome : "—"}
+              {produto.descricao || ""} | Sessão: {sessao ? sessao.nome : "—"}
             </div>
-            {p.tags && p.tags.length > 0 && (
+            {produto.tags && produto.tags.length > 0 && (
               <div style={{ marginTop: 5 }}>
-                {p.tags.map((tag) => (
+                {produto.tags?.split(",").map((tag) => (
                   <span
                     key={tag}
                     style={{
@@ -239,15 +297,15 @@ export function Admin() {
           <div className={styles["card-actions"]}>
             <button
               className={`${styles.btn} ${styles["btn-outline"]} ${styles["btn-sm"]}`}
-              onClick={() => abrirModalProduto(p)}
+              onClick={() => abrirModalProduto(produto)}
             >
-              ✏️
+              ✏️ Editar
             </button>
             <button
               className={`${styles.btn} ${styles["btn-danger"]} ${styles["btn-sm"]}`}
-              onClick={() => handleExcluirProduto(p.id)}
+              onClick={() => handleExcluirProduto(produto.id)}
             >
-              🗑️
+              🗑️ Excluir
             </button>
           </div>
         </div>
@@ -286,7 +344,6 @@ export function Admin() {
   // };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
     const validate = async () => {
       try {
         const response = await apiValidateToken({ token });
@@ -324,97 +381,106 @@ export function Admin() {
   }, []);
 
   return (
-    <div className={styles["admin-container"]}>
-      <header className={styles["admin-header"]}>
-        <h1>La Maison · Painel</h1>
-        <p>Gerencie sessões, produtos e vídeos</p>
-      </header>
+    <>
+      {tokenIsValid && (
+        <div className={styles["admin-container"]}>
+          <header className={styles["admin-header"]}>
+            <h1>La Maison · Painel</h1>
+            <p>Gerencie sessões, produtos e vídeos</p>
+          </header>
 
-      <div className={styles.tabs}>
-        <button
-          className={`${styles["tab-btn"]} ${activeTab === "sessoes" ? styles.active : ""}`}
-          onClick={() => setActiveTab("sessoes")}
-        >
-          📂 Sessões
-        </button>
-        <button
-          className={`${styles["tab-btn"]} ${activeTab === "produtos" ? styles.active : ""}`}
-          onClick={() => setActiveTab("produtos")}
-        >
-          🍽️ Produtos
-        </button>
-      </div>
-
-      <div className={styles["tab-content"]}>
-        {/* Aba Sessões */}
-        <div
-          className={`${styles["tab-pane"]} ${activeTab === "sessoes" ? styles.active : ""}`}
-        >
-          <div className={styles["tab-header"]}>
-            <h2 className={styles["tab-title"]}>Sessões do Cardápio</h2>
+          <div className={styles.tabs}>
             <button
-              className={`${styles.btn} ${styles["btn-primary"]}`}
-              onClick={() => abrirModalSessao()}
+              className={`${styles["tab-btn"]} ${activeTab === "sessoes" ? styles.active : ""}`}
+              onClick={() => setActiveTab("sessoes")}
             >
-              + Nova Sessão
+              📂 Sessões
             </button>
-          </div>
-          <div className={styles["section-list"]}>{renderSessoes()}</div>
-        </div>
-
-        {/* Aba Produtos */}
-        <div
-          className={`${styles["tab-pane"]} ${activeTab === "produtos" ? styles.active : ""}`}
-        >
-          <div className={styles["tab-header"]}>
-            <h2 className={styles["tab-title"]}>Produtos</h2>
-            <div className={styles["filter-group"]}>
-              <select
-                className={styles["filter-select"]}
-                value={filterSessaoId}
-                onChange={(e) => setFilterSessaoId(e.target.value)}
-              >
-                <option value="">Todas as sessões</option>
-                {sessoes.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.nome}
-                  </option>
-                ))}
-              </select>
+            {sessoes.length > 0 && (
               <button
-                className={`${styles.btn} ${styles["btn-primary"]}`}
-                onClick={() => abrirModalProduto()}
+                className={`${styles["tab-btn"]} ${activeTab === "produtos" ? styles.active : ""}`}
+                onClick={() => setActiveTab("produtos")}
               >
-                + Novo Produto
+                🍽️ Produtos
               </button>
+            )}
+          </div>
+
+          <div className={styles["tab-content"]}>
+            {/* Aba Sessões */}
+            <div
+              className={`${styles["tab-pane"]} ${activeTab === "sessoes" ? styles.active : ""}`}
+            >
+              <div className={styles["tab-header"]}>
+                <h2 className={styles["tab-title"]}>Sessões do Cardápio</h2>
+                <button
+                  className={`${styles.btn} ${styles["btn-primary"]}`}
+                  onClick={() => abrirModalSessao()}
+                >
+                  + Nova Sessão
+                </button>
+              </div>
+              <div className={styles["section-list"]}>{renderSessoes()}</div>
+            </div>
+
+            {/* Aba Produtos */}
+            <div
+              className={`${styles["tab-pane"]} ${activeTab === "produtos" ? styles.active : ""}`}
+            >
+              <div className={styles["tab-header"]}>
+                <h2 className={styles["tab-title"]}>Produtos</h2>
+                <div className={styles["filter-group"]}>
+                  <select
+                    className={styles["filter-select"]}
+                    value={filterSessaoId}
+                    onChange={(e) => setFilterSessaoId(e.target.value)}
+                  >
+                    <option value="">Todas as sessões</option>
+                    {sessoes.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.nome}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className={`${styles.btn} ${styles["btn-primary"]}`}
+                    onClick={() => abrirModalProduto()}
+                  >
+                    + Novo Produto
+                  </button>
+                </div>
+              </div>
+              <div className={styles["product-list"]}>{renderProdutos()}</div>
             </div>
           </div>
-          <div className={styles["product-list"]}>{renderProdutos()}</div>
-        </div>
-      </div>
 
-      {/* Modal Sessão */}
-      {modalSessaoAberto && (
-        <div className={styles["modal-overlay"]} onClick={fecharModalSessao}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h2 className={styles["modal-title"]}>
-              {sessaoEditando ? "Editar Sessão" : "Nova Sessão"}
-            </h2>
-            <form onSubmit={handleSubmitSessao}>
-              <input type="hidden" value={sessaoForm.id} />
-              <div className={styles["form-group"]}>
-                <label>Nome da Sessão</label>
-                <input
-                  type="text"
-                  value={sessaoForm.nome}
-                  onChange={(e) =>
-                    setSessaoForm({ ...sessaoForm, nome: e.target.value })
-                  }
-                  required
-                  placeholder="Ex: Pratos Principais"
-                />
-              </div>
-              <div className={styles["form-group"]}>
+          {modalSessaoAberto && (
+            <div
+              className={styles["modal-overlay"]}
+              onClick={fecharModalSessao}
+            >
+              <div
+                className={styles.modal}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h2 className={styles["modal-title"]}>
+                  {sessaoEditando ? "Editar Sessão" : "Nova Sessão"}
+                </h2>
+                <form onSubmit={(e) => handleSubmitSessao(e)}>
+                  <input type="hidden" value={sessaoForm.id} />
+                  <div className={styles["form-group"]}>
+                    <label>Nome da Sessão</label>
+                    <input
+                      type="text"
+                      value={sessaoForm.nome}
+                      onChange={(e) =>
+                        setSessaoForm({ ...sessaoForm, nome: e.target.value })
+                      }
+                      required
+                      placeholder="Ex: Pratos Principais"
+                    />
+                  </div>
+                  {/* <div className={styles["form-group"]}>
                 <label>Slug (identificador único)</label>
                 <input
                   type="text"
@@ -425,8 +491,8 @@ export function Admin() {
                   required
                   placeholder="Ex: pratos-principais"
                 />
-              </div>
-              <div className={styles["form-group"]}>
+              </div> */}
+                  {/* <div className={styles["form-group"]}>
                 <label>Vídeo da Sessão</label>
                 <div className={styles["file-upload-wrapper"]}>
                   <input
@@ -452,129 +518,198 @@ export function Admin() {
                 <small className={styles["file-hint"]}>
                   Formatos aceitos: MP4, WebM, OGG
                 </small>
+              </div> */}
+                  <div className={styles["modal-actions"]}>
+                    <button
+                      type="button"
+                      className={`${styles.btn} ${styles["btn-outline"]}`}
+                      onClick={fecharModalSessao}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className={`${styles.btn} ${styles["btn-primary"]}`}
+                    >
+                      💾 Salvar
+                    </button>
+                  </div>
+                </form>
               </div>
-              <div className={styles["modal-actions"]}>
-                <button
-                  type="button"
-                  className={`${styles.btn} ${styles["btn-outline"]}`}
-                  onClick={fecharModalSessao}
+            </div>
+          )}
+
+          {modalProdutoAberto && (
+            <div
+              className={styles["modal-overlay"]}
+              onClick={fecharModalProduto}
+            >
+              <div
+                className={styles.modal}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  className={styles["modal-header"]}
+                  style={{ display: "flex", justifyContent: "space-between" }}
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className={`${styles.btn} ${styles["btn-primary"]}`}
-                >
-                  💾 Salvar
-                </button>
+                  <h2 className={styles["modal-title"]}>
+                    {produtoEditando ? "Editar Produto" : "Novo Produto"}
+                  </h2>
+                  <button
+                    type="button"
+                    className={styles["close-button"]}
+                    onClick={fecharModalProduto}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <form onSubmit={handleSubmitProduto}>
+                  <div className={styles["form-group"]}>
+                    <label>Sessão</label>
+                    <select
+                      value={produtoSessaoId}
+                      onChange={(e) => setProdutoSessaoId(e.target.value)}
+                      required
+                    >
+                      {sessoes.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={styles["form-group"]}>
+                    <label>Nome do Produto</label>
+                    <input
+                      type="text"
+                      value={produtoNome}
+                      onChange={(e) => setProdutoNome(e.target.value)}
+                      required
+                      placeholder="Ex: Risoto de Cogumelos"
+                    />
+                  </div>
+                  <div className={styles["form-group"]}>
+                    <label>Foto do Produto</label>
+                    <div className={styles["file-upload-wrapper"]}>
+                      <input
+                        type="file"
+                        id="produtoMediaFile"
+                        multiple
+                        accept="image/jpeg,image/png,image/jpg,video/mp4,video/webm,video/ogg"
+                        onChange={(e) => {
+                          const files = e.target.files;
+                          if (files) {
+                            const filesArray = Array.from(files).map(
+                              (file) => ({
+                                file,
+                                preview: {
+                                  url: URL.createObjectURL(file),
+                                  type: file.type,
+                                },
+                              }),
+                            );
+
+                            setProdutoMidiaUrl(filesArray);
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="produtoMediaFile"
+                        className={styles["file-upload-btn"]}
+                      >
+                        🎬 Escolher arquivo
+                      </label>
+                    </div>
+                    <small className={styles["file-hint"]}>
+                      Formatos aceitos: MP4, WebM, OGG
+                    </small>
+                  </div>
+                  <div>
+                    {produtoMidiaUrl?.map((media, index) => (
+                      <div
+                        key={`${index}-image`}
+                        className={styles["media-preview-wrapper"]}
+                      >
+                        {media.preview.type.startsWith("image") ? (
+                          <img
+                            src={media.preview.url}
+                            alt=""
+                            className={styles["media-preview"]}
+                          />
+                        ) : (
+                          <video
+                            src={media.preview.url}
+                            className={styles["media-preview"]}
+                            muted
+                            autoPlay
+                          />
+                        )}
+                        <button onClick={() => handleRemoveMedia(index)}>
+                          X
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className={styles["form-group"]}>
+                    <label>Descrição</label>
+                    <textarea
+                      rows={3}
+                      value={produtoDescricao}
+                      onChange={(e) => setProdutoDescricao(e.target.value)}
+                      placeholder="Descrição curta..."
+                    />
+                  </div>
+                  <div className={styles["form-group"]}>
+                    <label>Preço (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={produtoPreco}
+                      onChange={(e) => {
+                        setProdutoPreco(e.target.value);
+                      }}
+                      required
+                      placeholder="89,90"
+                    />
+                  </div>
+                  <div className={styles["form-group"]}>
+                    <label>Tags (separadas por vírgula)</label>
+                    <input
+                      type="text"
+                      value={produtoTags}
+                      onChange={(e) => setProdutoTags(e.target.value)}
+                      placeholder="Trufado, Vegetariano"
+                    />
+                  </div>
+                  <div className={styles["modal-actions"]}>
+                    <button
+                      type="button"
+                      className={`${styles.btn} ${styles["btn-outline"]}`}
+                      onClick={fecharModalProduto}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className={`${styles.btn} ${styles["btn-primary"]}`}
+                    >
+                      💾 Salvar
+                    </button>
+                  </div>
+                </form>
               </div>
-            </form>
+            </div>
+          )}
+
+          <div
+            className={`${styles.toast} ${toast.show ? styles.show : ""}`}
+            style={{ background: toast.isError ? "#c0392b" : "#2b2418" }}
+          >
+            {toast.message}
           </div>
         </div>
       )}
-
-      {/* Modal Produto */}
-      {modalProdutoAberto && (
-        <div className={styles["modal-overlay"]} onClick={fecharModalProduto}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h2 className={styles["modal-title"]}>
-              {produtoEditando ? "Editar Produto" : "Novo Produto"}
-            </h2>
-            <form onSubmit={handleSubmitProduto}>
-              <input type="hidden" value={produtoForm.id} />
-              <div className={styles["form-group"]}>
-                <label>Sessão</label>
-                <select
-                  value={produtoForm.sessaoId}
-                  onChange={(e) =>
-                    setProdutoForm({ ...produtoForm, sessaoId: e.target.value })
-                  }
-                  required
-                >
-                  {sessoes.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className={styles["form-group"]}>
-                <label>Nome do Produto</label>
-                <input
-                  type="text"
-                  value={produtoForm.nome}
-                  onChange={(e) =>
-                    setProdutoForm({ ...produtoForm, nome: e.target.value })
-                  }
-                  required
-                  placeholder="Ex: Risoto de Cogumelos"
-                />
-              </div>
-              <div className={styles["form-group"]}>
-                <label>Descrição</label>
-                <textarea
-                  rows={3}
-                  value={produtoForm.descricao}
-                  onChange={(e) =>
-                    setProdutoForm({
-                      ...produtoForm,
-                      descricao: e.target.value,
-                    })
-                  }
-                  placeholder="Descrição curta..."
-                />
-              </div>
-              <div className={styles["form-group"]}>
-                <label>Preço (R$)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={produtoForm.preco}
-                  onChange={(e) =>
-                    setProdutoForm({ ...produtoForm, preco: e.target.value })
-                  }
-                  required
-                  placeholder="89.90"
-                />
-              </div>
-              <div className={styles["form-group"]}>
-                <label>Tags (separadas por vírgula)</label>
-                <input
-                  type="text"
-                  value={produtoForm.tags}
-                  onChange={(e) =>
-                    setProdutoForm({ ...produtoForm, tags: e.target.value })
-                  }
-                  placeholder="Trufado, Vegetariano"
-                />
-              </div>
-              <div className={styles["modal-actions"]}>
-                <button
-                  type="button"
-                  className={`${styles.btn} ${styles["btn-outline"]}`}
-                  onClick={fecharModalProduto}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className={`${styles.btn} ${styles["btn-primary"]}`}
-                >
-                  💾 Salvar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <div
-        className={`${styles.toast} ${toast.show ? styles.show : ""}`}
-        style={{ background: toast.isError ? "#c0392b" : "#2b2418" }}
-      >
-        {toast.message}
-      </div>
-    </div>
+    </>
   );
 }
