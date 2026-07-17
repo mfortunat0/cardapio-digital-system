@@ -23,6 +23,7 @@ export class ProdutoService {
     descricao: string;
     preco: number;
     tags?: string;
+    midiaUrl?: string;
   }) {
     return prisma.produto.create({
       data: {
@@ -31,6 +32,7 @@ export class ProdutoService {
         descricao: data.descricao,
         preco: data.preco,
         tags: data.tags,
+        midiaUrl: data.midiaUrl,
       },
       include: { sessao: true },
     });
@@ -43,6 +45,8 @@ export class ProdutoService {
       descricao?: string;
       preco?: number;
       sessaoId?: string;
+      tags?: string;
+      midiaUrl?: string;
     },
   ) {
     const updateData: any = { ...data };

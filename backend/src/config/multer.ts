@@ -18,7 +18,14 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback,
 ) => {
-  const allowedTypes = ["video/mp4", "video/webm", "video/ogg"];
+  const allowedTypes = [
+    "video/mp4",
+    "video/webm",
+    "video/ogg",
+    "image/jpeg",
+    "image/png",
+    "image/jpg",
+  ];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {

@@ -18,6 +18,7 @@ import {
   apiUpdateProduto,
   apiUpdateSessao,
   apiValidateToken,
+  apiUploadMultiple,
 } from "../../util/api";
 
 export function Admin() {
@@ -99,6 +100,17 @@ export function Admin() {
     setProdutoTags(produto?.tags || "");
     setProdutoSessaoId(produto?.sessaoId || "");
 
+    const existingMedia: FileWithPreview[] = produto?.midiaUrl
+      ? produto.midiaUrl.map((url) => ({
+          preview: {
+            url: `${import.meta.env.VITE_SERVER_API}${url}`,
+            rawUrl: url,
+            type: url.match(/\.(mp4|webm|ogg)$/i) ? "video/mp4" : "image/jpeg",
+          },
+        }))
+      : [];
+    setProdutoMidiaUrl(existingMedia);
+
     setModalProdutoAberto(true);
   };
 
@@ -133,6 +145,40 @@ export function Admin() {
           .filter((t) => t)
       : [];
 
+    let finalMidiaUrl: string[] = [];
+    console.log(finalMidiaUrl);
+
+    const existingUrls = produtoMidiaUrl
+      .filter((m) => !m.file && m.preview.rawUrl)
+      .map((m) => m.preview.rawUrl!);
+
+    finalMidiaUrl = [...existingUrls];
+
+    const filesToUpload = produtoMidiaUrl
+      .filter((m) => m.file)
+      .map((m) => m.file!);
+
+    if (filesToUpload.length > 0) {
+      if (!token) {
+        showToast("Token inválido para upload.", true);
+        return;
+      }
+      const formData = new FormData();
+      filesToUpload.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      const uploadResult = await apiUploadMultiple(formData, token);
+
+      if (uploadResult && Array.isArray(uploadResult)) {
+        const newUrls = uploadResult.map((res) => res.url);
+        finalMidiaUrl = [...finalMidiaUrl, ...newUrls];
+      } else {
+        showToast("Erro ao fazer upload das mídias.", true);
+        return;
+      }
+    }
+
     if (produtoEditando) {
       await apiUpdateProduto({
         id: produtoEditando.id,
@@ -141,7 +187,8 @@ export function Admin() {
         descricao: produtoDescricao.trim(),
         preco: precoNum,
         tags: tagsArray.join(","),
-        token,
+        midiaUrl: finalMidiaUrl,
+        token: token!,
       });
     } else {
       await apiCreateProduto({
@@ -150,7 +197,8 @@ export function Admin() {
         descricao: produtoDescricao.trim(),
         preco: precoNum,
         tags: tagsArray.join(","),
-        token,
+        midiaUrl: finalMidiaUrl,
+        token: token!,
       });
     }
 
@@ -435,7 +483,7 @@ export function Admin() {
                     value={filterSessaoId}
                     onChange={(e) => setFilterSessaoId(e.target.value)}
                   >
-                    <option value="">Todas as sessões</option>
+                    <option value="">Selecione uma sessão</option>
                     {sessoes.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.nome}
@@ -571,6 +619,8 @@ export function Admin() {
                       onChange={(e) => setProdutoSessaoId(e.target.value)}
                       required
                     >
+                      {" "}
+                      <option value="">Selecione uma sessão</option>
                       {sessoes.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.nome}
@@ -609,7 +659,10 @@ export function Admin() {
                               }),
                             );
 
-                            setProdutoMidiaUrl(filesArray);
+                            setProdutoMidiaUrl((prev) => [
+                              ...prev,
+                              ...filesArray,
+                            ]);
                           }
                         }}
                       />

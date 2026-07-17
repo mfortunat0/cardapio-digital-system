@@ -21,14 +21,18 @@ export const apiCreateProduto = async ({
   preco,
   tags,
   sessaoId,
+  midiaUrl,
   token,
-}: Pick<Produto, "nome" | "descricao" | "preco" | "tags" | "sessaoId"> & {
+}: Pick<
+  Produto,
+  "nome" | "descricao" | "preco" | "tags" | "sessaoId" | "midiaUrl"
+> & {
   token: string;
 }) => {
   try {
     const response = await api.post(
       "/produtos",
-      { nome, descricao, preco, tags, sessaoId },
+      { nome, descricao, preco, tags, sessaoId, midiaUrl },
       { headers: { Authorization: `Bearer ${token}` } },
     );
     return response;
@@ -63,17 +67,18 @@ export const apiUpdateProduto = async ({
   preco,
   tags,
   sessaoId,
+  midiaUrl,
   token,
 }: Pick<
   Produto,
-  "id" | "nome" | "descricao" | "preco" | "tags" | "sessaoId"
+  "id" | "nome" | "descricao" | "preco" | "tags" | "sessaoId" | "midiaUrl"
 > & {
   token: string;
 }) => {
   try {
     const response = await api.put(
       `/produtos/${id}`,
-      { nome, descricao, preco, tags, sessaoId },
+      { nome, descricao, preco, tags, sessaoId, midiaUrl },
       { headers: { Authorization: `Bearer ${token}` } },
     );
     return response;
@@ -181,6 +186,21 @@ export const apiValidateToken = async ({ token }: { token: string }) => {
       },
     );
     return response;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const apiUploadMultiple = async (formData: FormData, token: string) => {
+  try {
+    const response = await api.post("/upload/multiple", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
   } catch (error) {
     console.log(error);
     return null;

@@ -7,7 +7,11 @@ export class ProdutoController {
     try {
       const { sessaoId } = req.query;
       const produtos = await ProdutoService.getAll(sessaoId as string);
-      return res.json(produtos);
+      const formattedProdutos = produtos.map((p) => ({
+        ...p,
+        midiaUrl: p.midiaUrl ? JSON.parse(p.midiaUrl) : [],
+      }));
+      return res.json(formattedProdutos);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
@@ -20,7 +24,11 @@ export class ProdutoController {
       if (!produto) {
         return res.status(404).json({ error: "Produto não encontrado" });
       }
-      return res.json(produto);
+      const formattedProduto = {
+        ...produto,
+        midiaUrl: produto.midiaUrl ? JSON.parse(produto.midiaUrl) : [],
+      };
+      return res.json(formattedProduto);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
@@ -28,7 +36,7 @@ export class ProdutoController {
 
   static async create(req: Request, res: Response) {
     try {
-      const { sessaoId, nome, descricao, preco } = req.body;
+      const { sessaoId, nome, descricao, preco, tags, midiaUrl } = req.body;
 
       if (!sessaoId || !nome || preco === undefined) {
         return res
@@ -41,13 +49,19 @@ export class ProdutoController {
         nome,
         descricao,
         preco: Number(preco),
+        tags,
+        midiaUrl: midiaUrl ? JSON.stringify(midiaUrl) : undefined,
       });
 
       // Emitir evento via Socket.io
       const io = getSocket();
-      io.emit("produto:created", produto);
+      const formattedProduto = {
+        ...produto,
+        midiaUrl: produto.midiaUrl ? JSON.parse(produto.midiaUrl) : [],
+      };
+      io.emit("produto:created", formattedProduto);
 
-      return res.status(201).json(produto);
+      return res.status(201).json(formattedProduto);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
@@ -56,20 +70,26 @@ export class ProdutoController {
   static async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { sessaoId, nome, descricao, preco } = req.body;
+      const { sessaoId, nome, descricao, preco, tags, midiaUrl } = req.body;
 
       const produto = await ProdutoService.update(id as string, {
         sessaoId,
         nome,
         descricao,
         preco: preco !== undefined ? Number(preco) : undefined,
+        tags,
+        midiaUrl: midiaUrl ? JSON.stringify(midiaUrl) : undefined,
       });
 
       // Emitir evento via Socket.io
       const io = getSocket();
-      io.emit("produto:updated", produto);
+      const formattedProduto = {
+        ...produto,
+        midiaUrl: produto.midiaUrl ? JSON.parse(produto.midiaUrl) : [],
+      };
+      io.emit("produto:updated", formattedProduto);
 
-      return res.json(produto);
+      return res.json(formattedProduto);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }

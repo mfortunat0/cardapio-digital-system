@@ -20,9 +20,10 @@ export interface Produto {
 }
 
 export interface FileWithPreview {
-  file: File;
+  file?: File;
   preview: {
     url: string;
+    rawUrl?: string;
     type: string;
   };
 }
