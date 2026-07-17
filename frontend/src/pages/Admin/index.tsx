@@ -19,6 +19,7 @@ import {
   apiUpdateSessao,
   apiValidateToken,
   apiUploadMultiple,
+  apiUploadOne,
 } from "../../util/api";
 
 export function Admin() {
@@ -37,7 +38,7 @@ export function Admin() {
   const [produtoEditando, setProdutoEditando] = useState<Produto | null>(null);
 
   const [sessaoNome, setSessaoNome] = useState<string>("");
-  const [sessaoMidiaUrl, setSessaoMidiaUrl] = useState<FileWithPreview[]>([]);
+  const [sessaoMidiaUrl, setSessaoMidiaUrl] = useState<FileWithPreview>();
 
   const [produtoNome, setProdutoNome] = useState<string>("");
   const [produtoDescricao, setProdutoDescricao] = useState<string>("");
@@ -158,7 +159,8 @@ export function Admin() {
 
     if (filesToUpload.length > 0) {
       if (!token) {
-        showToast("Token inválido para upload.", true);
+        showToast("Sessão expirada.", true);
+
         return;
       }
       const formData = new FormData();
@@ -215,14 +217,41 @@ export function Admin() {
       return;
     }
 
+    const fileToUpload = sessaoMidiaUrl?.file;
+
+    let finalMidiaUrl: string = "";
+
+    if (fileToUpload) {
+      if (!token) {
+        showToast("Sessão expirada.", true);
+        return;
+      }
+      const formData = new FormData();
+      formData.append("files", fileToUpload);
+
+      const uploadResult = await apiUploadOne(formData, token);
+
+      if (uploadResult) {
+        finalMidiaUrl = uploadResult.url;
+      } else {
+        showToast("Erro ao fazer upload das mídias.", true);
+        return;
+      }
+    }
+
     if (sessaoEditando) {
       await apiUpdateSessao({
         id: sessaoEditando.id,
         nome: sessaoNome.trim(),
+        midiaUrl: finalMidiaUrl,
         token,
       });
     } else {
-      await apiCreateSessao({ nome: sessaoNome.trim(), token });
+      await apiCreateSessao({
+        nome: sessaoNome.trim(),
+        midiaUrl: finalMidiaUrl,
+        token,
+      });
     }
 
     showToast("Sessão salva!");
@@ -529,11 +558,18 @@ export function Admin() {
                       name="midiaUrl"
                       id="midiaUrl"
                       accept="video/mp4,video/webm,video/ogg"
-                      onChange={(e) =>
-                        setSessaoMidiaUrl(
-                          e.target.files?.[0] ? [e.target.files[0]] : [],
-                        )
-                      }
+                      onChange={(e) => {
+                        const file = e.target.files![0];
+                        if (file) {
+                          const fileWithPreview = {
+                            preview: {
+                              url: URL.createObjectURL(file),
+                              type: file.type,
+                            },
+                          };
+                          setSessaoMidiaUrl(fileWithPreview);
+                        }
+                      }}
                     />
                   </div>
                   {/* <div className={styles["form-group"]}>

@@ -101,14 +101,16 @@ export const apiGetSessoes = async () => {
 export const apiCreateSessao = async ({
   nome,
   token,
+  midiaUrl = "",
 }: {
   nome: string;
   token: string;
+  midiaUrl?: string;
 }) => {
   try {
     const response = await api.post(
       "/sessoes",
-      { nome },
+      { nome, midiaUrl },
       { headers: { Authorization: `Bearer ${token}` } },
     );
     return response;
@@ -121,16 +123,18 @@ export const apiCreateSessao = async ({
 export const apiUpdateSessao = async ({
   id,
   nome,
+  midiaUrl = "",
   token,
 }: {
   id: string;
   nome: string;
+  midiaUrl: string;
   token: string;
 }) => {
   try {
     const response = await api.put(
       `/sessoes/${id}`,
-      { nome },
+      { nome, midiaUrl },
       { headers: { Authorization: `Bearer ${token}` } },
     );
     return response;
@@ -195,6 +199,21 @@ export const apiValidateToken = async ({ token }: { token: string }) => {
 export const apiUploadMultiple = async (formData: FormData, token: string) => {
   try {
     const response = await api.post("/upload/multiple", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const apiUploadOne = async (formData: FormData, token: string) => {
+  try {
+    const response = await api.post("/upload/single", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${token}`,

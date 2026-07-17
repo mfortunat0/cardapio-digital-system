@@ -17,7 +17,7 @@ export class SessaoService {
     });
   }
 
-  static async create(data: { nome: string }) {
+  static async create(data: { nome: string; midiaUrl: string }) {
     return prisma.sessao.create({
       data,
     });
