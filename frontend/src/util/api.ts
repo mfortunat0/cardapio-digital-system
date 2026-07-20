@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { Produto, Sessao } from "../type";
+import { socket } from "./socket";
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_SERVER_API,
@@ -35,6 +36,7 @@ export const apiCreateProduto = async ({
       { nome, descricao, preco, tags, sessaoId, midiaUrl },
       { headers: { Authorization: `Bearer ${token}` } },
     );
+    socket.emit("request-reload-produtos");
     return response;
   } catch (error) {
     console.log(error);
@@ -53,6 +55,7 @@ export const apiDeleteProduto = async ({
     await api.delete(`/produtos/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    socket.emit("request-reload-produtos");
     return true;
   } catch (error) {
     console.log(error);
@@ -81,6 +84,7 @@ export const apiUpdateProduto = async ({
       { nome, descricao, preco, tags, sessaoId, midiaUrl },
       { headers: { Authorization: `Bearer ${token}` } },
     );
+    socket.emit("request-reload-produtos");
     return response;
   } catch (error) {
     console.log(error);
@@ -113,6 +117,7 @@ export const apiCreateSessao = async ({
       { nome, midiaUrl },
       { headers: { Authorization: `Bearer ${token}` } },
     );
+    socket.emit("request-reload-sessoes");
     return response;
   } catch (error) {
     console.log(error);
@@ -137,6 +142,7 @@ export const apiUpdateSessao = async ({
       { nome, midiaUrl },
       { headers: { Authorization: `Bearer ${token}` } },
     );
+    socket.emit("request-reload-sessoes");
     return response;
   } catch (error) {
     console.log(error);
@@ -155,6 +161,7 @@ export const apiDeleteSessao = async ({
     await api.delete(`/sessoes/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    socket.emit("request-reload-sessoes");
     return true;
   } catch (error) {
     console.log(error);

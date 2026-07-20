@@ -1,6 +1,7 @@
 // src/pages/CardapioBase/CardapioBase.tsx
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import styles from "./index.module.css";
+import { apiGetProdutos } from "../../util/api";
 
 // ==================== TIPOS ====================
 export interface MenuItem {
@@ -222,6 +223,15 @@ const VIDEO_DATA: Record<string, VideoData> = {
     subtitle: "les desserts",
   },
 };
+
+useEffect(() => {
+  const getAllProdutos = async () => {
+    const response = await apiGetProdutos();
+    setProdutos(response);
+  };
+
+  getAllProdutos();
+}, []);
 
 // ==================== COMPONENTE MODAL CARROSSEL ====================
 interface ModalCarouselProps {

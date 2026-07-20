@@ -14,6 +14,14 @@ export const initSocket = (server: HttpServer) => {
   io.on("connection", (socket: Socket) => {
     console.log(`🔌 Cliente conectado: ${socket.id}`);
 
+    socket.on("request-reload-produtos", () => {
+      socket.broadcast.emit("reload-produtos");
+    });
+
+    socket.on("request-reload-sessoes", () => {
+      socket.broadcast.emit("reload-sessoes");
+    });
+
     socket.on("disconnect", () => {
       console.log(`🔌 Cliente desconectado: ${socket.id}`);
     });

@@ -26,7 +26,6 @@ prisma
     process.exit(1);
   });
 
-// Graceful shutdown
 process.on("SIGTERM", () => {
   console.log("🛑 Encerrando servidor...");
   server.close(async () => {

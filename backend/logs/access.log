@@ -1,0 +1,6 @@
+GET /api/sessoes 200 572 - 61.931 ms -
+GET /api/sessoes 200 572 - 2.393 ms -
+POST /api/auth/login/validate 200 14 - 3.280 ms {}
+GET /api/produtos 200 2 - 5.029 ms -
+POST /api/auth/login/validate 200 14 - 0.753 ms {}
+GET /api/produtos 304 - - 2.718 ms -
