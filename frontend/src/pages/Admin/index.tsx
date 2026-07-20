@@ -180,11 +180,8 @@ export function Admin() {
       .map((m) => m.file!);
 
     if (filesToUpload.length > 0) {
-      if (!token) {
-        showToast("Sessão expirada.", true);
-        navigate("/login");
-        return;
-      }
+      await validateToken();
+
       const formData = new FormData();
       filesToUpload.forEach((file) => {
         formData.append("files", file);
@@ -249,11 +246,8 @@ export function Admin() {
       const fileToUpload = sessaoMidiaUrl.file;
 
       if (fileToUpload) {
-        if (!token) {
-          showToast("Sessão expirada.", true);
-          navigate("/login");
-          return;
-        }
+        await validateToken();
+
         const formData = new FormData();
         formData.append("file", fileToUpload);
 
@@ -416,35 +410,27 @@ export function Admin() {
     });
   };
 
-  // const validateToken = async () => {
-  //   const token = localStorage.getItem("token");
+  const validateToken = async () => {
+    const token = localStorage.getItem("token");
 
-  //   if (!token) {
-  //     showToast("Token não encontrado", true);
-  //     navigate("/login");
-  //     return;
-  //   }
+    if (!token) {
+      showToast("Token não encontrado", true);
+      navigate("/login");
+      return;
+    }
 
-  //   try {
-  //     const response = await axios.post(
-  //       `${import.meta.env.VITE_SERVER_API}/login/validate`,
-  //       {},
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       },
-  //     );
-  //     if (response.status !== 200) {
-  //       navigate("/login");
-  //     } else {
-  //       return token;
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //     navigate("/login");
-  //   }
-  // };
+    try {
+      const response = await apiValidateToken({ token });
+      if (response.status !== 200) {
+        navigate("/login");
+      } else {
+        return token;
+      }
+    } catch (error) {
+      console.log(error);
+      navigate("/login");
+    }
+  };
 
   useEffect(() => {
     const validate = async () => {
