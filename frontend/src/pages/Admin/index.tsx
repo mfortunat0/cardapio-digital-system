@@ -77,6 +77,16 @@ export function Admin() {
   const abrirModalSessao = (sessao?: Sessao) => {
     setSessaoEditando(sessao || null);
     setSessaoNome(sessao?.nome || "");
+    setSessaoMidiaUrl({
+      preview: {
+        url: sessao?.midiaUrl
+          ? `${import.meta.env.VITE_SERVER_API}${sessao.midiaUrl}`
+          : "",
+        rawUrl: sessao?.midiaUrl,
+        type: "video/mp4",
+      },
+    });
+
     setModalSessaoAberto(true);
   };
 
@@ -104,7 +114,7 @@ export function Admin() {
           preview: {
             url: `${import.meta.env.VITE_SERVER_API}${url}`,
             rawUrl: url,
-            type: url.match(/\.(mp4|webm|ogg)$/i) ? "video/mp4" : "image/jpeg",
+            type: "image/jpeg",
           },
         }))
       : [];
@@ -113,9 +123,19 @@ export function Admin() {
     setModalProdutoAberto(true);
   };
 
-  const handleRemoveMedia = (index: number) => {
+  const handleRemoveMediaImageProduto = (index: number) => {
     const newMidiaUrl = produtoMidiaUrl.filter((_, i) => i !== index);
     setProdutoMidiaUrl(newMidiaUrl);
+  };
+
+  const handleRemoveMediaVideoSessao = () => {
+    setSessaoMidiaUrl({
+      preview: {
+        url: "",
+        rawUrl: "",
+        type: "video/mp4",
+      },
+    });
   };
 
   const fecharModalProduto = () => {
@@ -151,6 +171,8 @@ export function Admin() {
       .filter((m) => !m.file && m.preview.rawUrl)
       .map((m) => m.preview.rawUrl!);
 
+    console.log(existingUrls);
+
     finalMidiaUrl = [...existingUrls];
 
     const filesToUpload = produtoMidiaUrl
@@ -160,7 +182,7 @@ export function Admin() {
     if (filesToUpload.length > 0) {
       if (!token) {
         showToast("Sessão expirada.", true);
-
+        navigate("/login");
         return;
       }
       const formData = new FormData();
@@ -190,7 +212,11 @@ export function Admin() {
         midiaUrl: finalMidiaUrl,
         token: token!,
       });
+
+      console.log(finalMidiaUrl);
     } else {
+      console.log(finalMidiaUrl);
+
       await apiCreateProduto({
         sessaoId: produtoSessaoId,
         nome: produtoNome.trim(),
@@ -217,25 +243,28 @@ export function Admin() {
       return;
     }
 
-    const fileToUpload = sessaoMidiaUrl?.file;
-
     let finalMidiaUrl: string = "";
 
-    if (fileToUpload) {
-      if (!token) {
-        showToast("Sessão expirada.", true);
-        return;
-      }
-      const formData = new FormData();
-      formData.append("files", fileToUpload);
+    if (sessaoMidiaUrl.file) {
+      const fileToUpload = sessaoMidiaUrl.file;
 
-      const uploadResult = await apiUploadOne(formData, token);
+      if (fileToUpload) {
+        if (!token) {
+          showToast("Sessão expirada.", true);
+          navigate("/login");
+          return;
+        }
+        const formData = new FormData();
+        formData.append("file", fileToUpload);
 
-      if (uploadResult) {
-        finalMidiaUrl = uploadResult.url;
-      } else {
-        showToast("Erro ao fazer upload das mídias.", true);
-        return;
+        const uploadResult = await apiUploadOne(formData, token);
+
+        if (uploadResult) {
+          finalMidiaUrl = uploadResult.url;
+        } else {
+          showToast("Erro ao fazer upload das mídias.", true);
+          return;
+        }
       }
     }
 
@@ -553,24 +582,50 @@ export function Admin() {
                   </div>
                   <div className={styles["form-group"]}>
                     <label>Vídeo da Sessão</label>
-                    <input
-                      type="file"
-                      name="midiaUrl"
-                      id="midiaUrl"
-                      accept="video/mp4,video/webm,video/ogg"
-                      onChange={(e) => {
-                        const file = e.target.files![0];
-                        if (file) {
-                          const fileWithPreview = {
-                            preview: {
-                              url: URL.createObjectURL(file),
-                              type: file.type,
-                            },
-                          };
-                          setSessaoMidiaUrl(fileWithPreview);
-                        }
-                      }}
-                    />
+                    <div className={styles["file-upload-wrapper"]}>
+                      <input
+                        type="file"
+                        name="sessaoVideoFile"
+                        id="sessaoVideoFile"
+                        accept="video/mp4,video/webm,video/ogg"
+                        onChange={(e) => {
+                          const file = e.target.files![0];
+                          if (file) {
+                            const fileWithPreview = {
+                              file: file,
+                              preview: {
+                                url: URL.createObjectURL(file),
+                                type: file.type,
+                              },
+                            };
+                            setSessaoMidiaUrl(fileWithPreview);
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="sessaoVideoFile"
+                        className={styles["file-upload-btn"]}
+                      >
+                        🎬 Escolher arquivo
+                      </label>
+                    </div>
+                    {!!sessaoMidiaUrl?.preview.url && (
+                      <div>
+                        <div className={styles["media-preview-wrapper"]}>
+                          <video
+                            src={sessaoMidiaUrl?.preview.url}
+                            className={styles["media-preview"]}
+                            muted
+                            autoPlay
+                          />
+                          <button
+                            onClick={() => handleRemoveMediaVideoSessao()}
+                          >
+                            X
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   {/* <div className={styles["form-group"]}>
                 <label>Slug (identificador único)</label>
@@ -689,7 +744,7 @@ export function Admin() {
                         type="file"
                         id="produtoMediaFile"
                         multiple
-                        accept="image/jpeg,image/png,image/jpg,video/mp4,video/webm,video/ogg"
+                        accept="image/jpeg,image/png,image/jpg"
                         onChange={(e) => {
                           const files = e.target.files;
                           if (files) {
@@ -727,21 +782,14 @@ export function Admin() {
                         key={`${index}-image`}
                         className={styles["media-preview-wrapper"]}
                       >
-                        {media.preview.type.startsWith("image") ? (
-                          <img
-                            src={media.preview.url}
-                            alt=""
-                            className={styles["media-preview"]}
-                          />
-                        ) : (
-                          <video
-                            src={media.preview.url}
-                            className={styles["media-preview"]}
-                            muted
-                            autoPlay
-                          />
-                        )}
-                        <button onClick={() => handleRemoveMedia(index)}>
+                        <img
+                          src={media.preview.url}
+                          alt=""
+                          className={styles["media-preview"]}
+                        />
+                        <button
+                          onClick={() => handleRemoveMediaImageProduto(index)}
+                        >
                           X
                         </button>
                       </div>

@@ -4,7 +4,7 @@ export interface Sessao {
   createdAt: string;
   updatedAt: string;
   produtos: Produto[];
-  midiaUrl?: string[];
+  midiaUrl?: string;
 }
 
 export interface Produto {
