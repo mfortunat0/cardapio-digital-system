@@ -172,6 +172,7 @@ const CardapioFora: React.FC = () => {
     for (let i = 0; i < sessions.length; i += 2) {
       pairs.push([sessions[i], sessions[i + 1] || null]);
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSlides(pairs);
     setCurrentSlide(0);
   }, [sessions]);

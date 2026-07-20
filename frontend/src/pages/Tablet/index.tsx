@@ -1,7 +1,8 @@
 // src/pages/CardapioBase/CardapioBase.tsx
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import styles from "./index.module.css";
-import { apiGetProdutos } from "../../util/api";
+import { apiGetSessoes } from "../../util/api";
+import { socket } from "../../util/socket";
 
 // ==================== TIPOS ====================
 export interface MenuItem {
@@ -17,7 +18,7 @@ export interface MenuSection {
   id: string;
   titulo: string;
   subtitulo: string;
-  videoKey: "pratos" | "entradas" | "sobremesas";
+  videoKey: string;
   items: MenuItem[];
 }
 
@@ -55,185 +56,43 @@ const getRandomImages = (seed: string, count = 4): string[] => {
   );
 };
 
-// ==================== DADOS MOCK ====================
-const MOCK_SECTIONS: MenuSection[] = [
-  {
-    id: "section-pratos",
-    titulo: "Pratos Principais",
-    subtitulo: "les plats",
-    videoKey: "pratos",
-    items: [
-      {
-        id: "1",
-        nome: "Risoto de Cogumelos Trufados",
-        descricao:
-          "Arroz arbóreo cremoso com mix de cogumelos selvagens, azeite de trufas negras e parmesão",
-        preco: "R$ 89",
-        tags: ["Trufado", "Vegetariano"],
-        imagens: getRandomImages("risoto"),
-      },
-      {
-        id: "2",
-        nome: "Filé Mignon ao Molho Madeira",
-        descricao:
-          "Medalhão de filé mignon grelhado, molho madeira envelhecido, purê de mandioquinha e aspargos",
-        preco: "R$ 112",
-        tags: ["Clássico", "Premium"],
-        imagens: getRandomImages("file"),
-      },
-      {
-        id: "3",
-        nome: "Salmão Grelhado com Ervas",
-        descricao:
-          "Posta de salmão selvagem grelhada, crosta de ervas finas, legumes glaceados e molho de maracujá",
-        preco: "R$ 96",
-        tags: ["Saudável"],
-        imagens: getRandomImages("salmao"),
-      },
-      {
-        id: "4",
-        nome: "Ravioli de Queijo de Cabra",
-        descricao:
-          "Massa artesanal recheada com queijo de cabra e nozes, manteiga de sálvia e mel trufado",
-        preco: "R$ 78",
-        tags: ["Artesanal"],
-        imagens: getRandomImages("ravioli"),
-      },
-      {
-        id: "5",
-        nome: "Polvo à Lagareiro",
-        descricao:
-          "Polvo assado lentamente, batatas ao murro, cebola caramelizada e azeite extra virgem",
-        preco: "R$ 120",
-        tags: ["Premium", "Especial"],
-        imagens: getRandomImages("polvo"),
-      },
-    ],
-  },
-  {
-    id: "section-entradas",
-    titulo: "Entradas",
-    subtitulo: "pour commencer",
-    videoKey: "entradas",
-    items: [
-      {
-        id: "6",
-        nome: "Carpaccio de Carne",
-        descricao:
-          "Finas lâminas de filé mignon com rúcula, lascas de parmesão trufado e alcaparras",
-        preco: "R$ 48",
-        tags: ["Clássico", "Trufado"],
-        imagens: getRandomImages("carpaccio"),
-      },
-      {
-        id: "7",
-        nome: "Salada de Burrata",
-        descricao:
-          "Burrata cremosa com tomates heirloom, manjericão fresco e redução balsâmica",
-        preco: "R$ 42",
-        tags: ["Vegetariano"],
-        imagens: getRandomImages("burrata"),
-      },
-      {
-        id: "8",
-        nome: "Ceviche de Peixe Branco",
-        descricao:
-          "Cubos de robalo curados em leite de tigre, milho crocante e batata-doce",
-        preco: "R$ 52",
-        tags: ["Fresco", "Cítrico"],
-        imagens: getRandomImages("ceviche"),
-      },
-      {
-        id: "9",
-        nome: "Polvo Grelhado",
-        descricao:
-          "Tentáculos de polvo grelhados sobre batatas rústicas, páprica defumada e aioli cítrico",
-        preco: "R$ 58",
-        tags: ["Premium"],
-        imagens: getRandomImages("polvo2"),
-      },
-    ],
-  },
-  {
-    id: "section-sobremesas",
-    titulo: "Sobremesas",
-    subtitulo: "les desserts",
-    videoKey: "sobremesas",
-    items: [
-      {
-        id: "10",
-        nome: "Tiramisù Clássico",
-        descricao:
-          "Camadas de mascarpone, café espresso, cacau amargo e biscoitos savoiardi artesanais",
-        preco: "R$ 38",
-        tags: ["Clássico"],
-        imagens: getRandomImages("tiramisu"),
-      },
-      {
-        id: "11",
-        nome: "Cheesecake de Frutas Vermelhas",
-        descricao:
-          "Cheesecake cremoso sobre base de biscoito, calda de frutas vermelhas frescas e hortelã",
-        preco: "R$ 42",
-        tags: ["Frutado"],
-        imagens: getRandomImages("cheesecake"),
-      },
-      {
-        id: "12",
-        nome: "Fondant de Chocolate",
-        descricao:
-          "Bolo de chocolate com núcleo cremoso, servido quente com sorvete de baunilha de Madagascar",
-        preco: "R$ 45",
-        tags: ["Quente", "Intenso"],
-        imagens: getRandomImages("fondant"),
-      },
-      {
-        id: "13",
-        nome: "Panna Cotta de Baunilha",
-        descricao:
-          "Panna cotta sedosa de baunilha bourbon com calda de frutas cítricas e flor de sal",
-        preco: "R$ 35",
-        tags: ["Leve"],
-        imagens: getRandomImages("panna"),
-      },
-    ],
-  },
-];
-
-const VIDEO_DATA: Record<string, VideoData> = {
-  pratos: {
+// ==================== DADOS DE VÍDEO E MOCK ====================
+const getDefaultVideoData = (
+  name: string,
+): { src: string; poster: string; subtitle: string } => {
+  const normalized = name.toLowerCase();
+  if (normalized.includes("prato") || normalized.includes("principal")) {
+    return {
+      src: "https://videos.pexels.com/video-files/4761687/4761687-sd_640_360_24fps.mp4",
+      poster:
+        "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80",
+      subtitle: "les plats",
+    };
+  }
+  if (normalized.includes("entrada")) {
+    return {
+      src: "https://videos.pexels.com/video-files/4065393/4065393-sd_640_360_25fps.mp4",
+      poster:
+        "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1200&q=80",
+      subtitle: "pour commencer",
+    };
+  }
+  if (normalized.includes("sobremesa") || normalized.includes("doce")) {
+    return {
+      src: "https://videos.pexels.com/video-files/4107551/4107551-sd_640_360_25fps.mp4",
+      poster:
+        "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=1200&q=80",
+      subtitle: "les desserts",
+    };
+  }
+  return {
     src: "https://videos.pexels.com/video-files/4761687/4761687-sd_640_360_24fps.mp4",
     poster:
       "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80",
-    label: "Pratos Principais",
-    subtitle: "les plats",
-  },
-  entradas: {
-    src: "https://videos.pexels.com/video-files/4065393/4065393-sd_640_360_25fps.mp4",
-    poster:
-      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1200&q=80",
-    label: "Entradas",
-    subtitle: "pour commencer",
-  },
-  sobremesas: {
-    src: "https://videos.pexels.com/video-files/4107551/4107551-sd_640_360_25fps.mp4",
-    poster:
-      "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=1200&q=80",
-    label: "Sobremesas",
-    subtitle: "les desserts",
-  },
+    subtitle: "les suggestions",
+  };
 };
 
-useEffect(() => {
-  const getAllProdutos = async () => {
-    const response = await apiGetProdutos();
-    setProdutos(response);
-  };
-
-  getAllProdutos();
-}, []);
-
-// ==================== COMPONENTE MODAL CARROSSEL ====================
 interface ModalCarouselProps {
   item: MenuItem | null;
   onClose: () => void;
@@ -243,22 +102,12 @@ const ModalCarousel: React.FC<ModalCarouselProps> = ({ item, onClose }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const images = item?.imagens || [];
 
-  const goToPrev = () => {
+  const goToPrev = useCallback(() => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  };
-  const goToNext = () => {
+  }, [images.length]);
+  const goToNext = useCallback(() => {
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") goToPrev();
-      if (e.key === "ArrowRight") goToNext();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, goToPrev, goToNext]);
+  }, [images.length]);
 
   if (!item) return null;
 
@@ -308,11 +157,12 @@ const ModalCarousel: React.FC<ModalCarouselProps> = ({ item, onClose }) => {
 
 // ==================== COMPONENTE PRINCIPAL ====================
 const CardapioBase: React.FC = () => {
-  const [sections] = useState<MenuSection[]>(MOCK_SECTIONS);
+  const [sections, setSections] = useState<MenuSection[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const [activeVideoKey, setActiveVideoKey] = useState<string>("pratos");
-  const [activeSectionId, setActiveSectionId] =
-    useState<string>("section-pratos");
+  const [activeVideoKey, setActiveVideoKey] = useState<string>("");
+  const [activeSectionId, setActiveSectionId] = useState<string>("");
+  const [videoData, setVideoData] = useState<Record<string, VideoData>>({});
+  const hasInitializedRef = useRef(false);
 
   // Refs para vídeos
   const videoARef = useRef<HTMLVideoElement>(null);
@@ -329,8 +179,128 @@ const CardapioBase: React.FC = () => {
   const [inactiveVideoElement, setInactiveVideoElement] =
     useState<HTMLVideoElement | null>(null);
 
+  // Refs to avoid stale closures
+  const isTransitioningRef = useRef(false);
+  const activeVideoKeyRef = useRef("");
+  const pendingVideoKeyRef = useRef<string | null>(null);
+  const currentVideoElementRef = useRef<HTMLVideoElement | null>(null);
+  const inactiveVideoElementRef = useRef<HTMLVideoElement | null>(null);
+  const videoDataRef = useRef<Record<string, VideoData>>({});
+  const switchVideoRef = useRef<(key: string) => void>(() => {});
+
+  // Keep refs synchronized
+  useEffect(() => {
+    isTransitioningRef.current = isTransitioning;
+    activeVideoKeyRef.current = activeVideoKey;
+    currentVideoElementRef.current = currentVideoElement;
+    inactiveVideoElementRef.current = inactiveVideoElement;
+    videoDataRef.current = videoData;
+  }, [
+    isTransitioning,
+    activeVideoKey,
+    currentVideoElement,
+    inactiveVideoElement,
+    videoData,
+  ]);
+
+  const loadData = useCallback(async () => {
+    try {
+      const sessoesData = await apiGetSessoes();
+      const serverUrl = import.meta.env.VITE_SERVER_API || "";
+
+      const mappedSections: MenuSection[] = sessoesData.map((sessao) => {
+        const defaults = getDefaultVideoData(sessao.nome);
+
+        return {
+          id: sessao.id,
+          titulo: sessao.nome,
+          subtitulo: defaults.subtitle,
+          videoKey: sessao.id,
+          items: (sessao.produtos || []).map((produto) => {
+            let parsedImages: string[] = [];
+            if (typeof produto.midiaUrl === "string") {
+              try {
+                parsedImages = JSON.parse(produto.midiaUrl);
+              } catch {
+                parsedImages = [];
+              }
+            } else if (Array.isArray(produto.midiaUrl)) {
+              parsedImages = produto.midiaUrl;
+            }
+
+            const imagens =
+              parsedImages.length > 0
+                ? parsedImages.map((img) =>
+                    img.startsWith("http") ? img : `${serverUrl}${img}`,
+                  )
+                : getRandomImages(produto.nome);
+
+            let tags: string[] = [];
+            if (typeof produto.tags === "string" && produto.tags) {
+              tags = produto.tags
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean);
+            } else if (Array.isArray(produto.tags)) {
+              tags = produto.tags;
+            }
+
+            return {
+              id: produto.id,
+              nome: produto.nome,
+              descricao: produto.descricao,
+              preco: produto.preco.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              }),
+              tags,
+              imagens,
+            };
+          }),
+        };
+      });
+
+      const newVideoData: Record<string, VideoData> = {};
+      sessoesData.forEach((sessao) => {
+        const defaults = getDefaultVideoData(sessao.nome);
+        newVideoData[sessao.id] = {
+          src: sessao.midiaUrl
+            ? `${serverUrl}${sessao.midiaUrl}`
+            : defaults.src,
+          poster: defaults.poster,
+          label: sessao.nome,
+          subtitle: defaults.subtitle,
+        };
+      });
+
+      setVideoData(newVideoData);
+      setSections(mappedSections);
+    } catch (error) {
+      console.error("Erro ao carregar dados do menu:", error);
+    }
+  }, []);
+
+  // Carregar dados na inicialização
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData();
+  }, [loadData]);
+
+  // Socket listener para atualizações em tempo real
+  useEffect(() => {
+    socket.on("reload-sessoes", loadData);
+    socket.on("reload-produtos", loadData);
+
+    return () => {
+      socket.off("reload-sessoes", loadData);
+      socket.off("reload-produtos", loadData);
+    };
+  }, [loadData]);
+
   // Inicializa vídeos
   useEffect(() => {
+    if (sections.length === 0 || hasInitializedRef.current) return;
+
     const videoA = videoARef.current;
     const videoB = videoBRef.current;
     if (!videoA || !videoB) return;
@@ -338,7 +308,12 @@ const CardapioBase: React.FC = () => {
     setCurrentVideoElement(videoA);
     setInactiveVideoElement(videoB);
 
-    const initialData = VIDEO_DATA["pratos"];
+    const firstSection = sections[0];
+    const initialData = videoData[firstSection.id];
+    if (!initialData) return;
+
+    hasInitializedRef.current = true;
+
     if (posterImgRef.current) posterImgRef.current.src = initialData.poster;
     videoA.src = initialData.src;
     videoA.load();
@@ -362,114 +337,106 @@ const CardapioBase: React.FC = () => {
     };
     videoA.addEventListener("playing", onPlay);
 
+    setActiveVideoKey(firstSection.id);
+    setActiveSectionId(firstSection.id);
+
     return () => videoA.removeEventListener("playing", onPlay);
-  }, []);
+  }, [sections, videoData]);
 
   // Troca de vídeo
-  const switchVideo = useCallback(
-    (key: string) => {
-      if (key === activeVideoKey && !isTransitioning) return;
+  const switchVideo = useCallback((key: string) => {
+    if (key === activeVideoKeyRef.current) return;
 
-      const incoming = inactiveVideoElement;
-      const outgoing = currentVideoElement;
-      if (!incoming || !outgoing) return;
+    if (isTransitioningRef.current) {
+      pendingVideoKeyRef.current = key;
+      return;
+    }
 
-      const data = VIDEO_DATA[key];
-      if (!data) return;
+    const incoming = inactiveVideoElementRef.current;
+    const outgoing = currentVideoElementRef.current;
+    if (!incoming || !outgoing) return;
 
-      if (isTransitioning) {
-        const checkInterval = setInterval(() => {
-          if (!isTransitioning) {
-            clearInterval(checkInterval);
-            if (key !== activeVideoKey) switchVideo(key);
-          }
-        }, 100);
-        setTimeout(() => clearInterval(checkInterval), 3000);
-        return;
+    const data = videoDataRef.current[key];
+    if (!data) return;
+
+    setIsTransitioning(true);
+    isTransitioningRef.current = true;
+
+    if (posterImgRef.current) {
+      posterImgRef.current.src = data.poster;
+      posterImgRef.current.classList.remove(styles.hidden);
+    }
+
+    incoming.src = data.src;
+    incoming.load();
+
+    if (loadingSpinnerRef.current)
+      loadingSpinnerRef.current.classList.add(styles.visible);
+
+    const checkPendingQueue = () => {
+      if (pendingVideoKeyRef.current !== null) {
+        const nextKey = pendingVideoKeyRef.current;
+        pendingVideoKeyRef.current = null;
+        setTimeout(() => switchVideoRef.current(nextKey), 50);
       }
+    };
 
-      setIsTransitioning(true);
+    // eslint-disable-next-line prefer-const
+    let timeoutId: ReturnType<typeof setTimeout>;
 
-      if (posterImgRef.current) {
-        posterImgRef.current.src = data.poster;
-        posterImgRef.current.classList.remove(styles.hidden);
-      }
-
-      incoming.src = data.src;
-      incoming.load();
-
+    const finishTransition = () => {
       if (loadingSpinnerRef.current)
-        loadingSpinnerRef.current.classList.add(styles.visible);
+        loadingSpinnerRef.current.classList.remove(styles.visible);
 
-      const onCanPlay = () => {
-        incoming.removeEventListener("canplay", onCanPlay);
-        incoming.removeEventListener("canplaythrough", onCanPlay);
+      incoming.classList.add(styles.active);
+      incoming.classList.remove(styles.loading);
+      outgoing.classList.remove(styles.active);
 
-        if (loadingSpinnerRef.current)
-          loadingSpinnerRef.current.classList.remove(styles.visible);
+      incoming.play().catch(() => {});
 
-        incoming.classList.add(styles.active);
-        incoming.classList.remove(styles.loading);
-        outgoing.classList.remove(styles.active);
+      setCurrentVideoElement(incoming);
+      setInactiveVideoElement(outgoing);
+      currentVideoElementRef.current = incoming;
+      inactiveVideoElementRef.current = outgoing;
 
-        incoming.play().catch(() => {});
+      setActiveVideoKey(key);
+      activeVideoKeyRef.current = key;
 
-        setCurrentVideoElement(incoming);
-        setInactiveVideoElement(outgoing);
-        setActiveVideoKey(key);
+      if (videoLabelRef.current) videoLabelRef.current.textContent = data.label;
+      if (videoSubtitleRef.current)
+        videoSubtitleRef.current.textContent = data.subtitle;
 
-        if (videoLabelRef.current)
-          videoLabelRef.current.textContent = data.label;
-        if (videoSubtitleRef.current)
-          videoSubtitleRef.current.textContent = data.subtitle;
+      if (!incoming.paused && incoming.readyState >= 2) {
+        if (posterImgRef.current)
+          posterImgRef.current.classList.add(styles.hidden);
+      }
 
-        if (!incoming.paused && incoming.readyState >= 2) {
-          if (posterImgRef.current)
-            posterImgRef.current.classList.add(styles.hidden);
-        }
+      setIsTransitioning(false);
+      isTransitioningRef.current = false;
+      checkPendingQueue();
+    };
 
-        setIsTransitioning(false);
-      };
+    const onCanPlay = () => {
+      clearTimeout(timeoutId);
+      incoming.removeEventListener("canplay", onCanPlay);
+      incoming.removeEventListener("canplaythrough", onCanPlay);
+      finishTransition();
+    };
 
-      incoming.addEventListener("canplay", onCanPlay);
-      incoming.addEventListener("canplaythrough", onCanPlay);
+    incoming.addEventListener("canplay", onCanPlay);
+    incoming.addEventListener("canplaythrough", onCanPlay);
 
-      const timeout = setTimeout(() => {
-        incoming.removeEventListener("canplay", onCanPlay);
-        incoming.removeEventListener("canplaythrough", onCanPlay);
-        if (loadingSpinnerRef.current)
-          loadingSpinnerRef.current.classList.remove(styles.visible);
-        incoming.classList.add(styles.active);
-        incoming.classList.remove(styles.loading);
-        outgoing.classList.remove(styles.active);
-        incoming.play().catch(() => {});
-        setCurrentVideoElement(incoming);
-        setInactiveVideoElement(outgoing);
-        setActiveVideoKey(key);
-        if (videoLabelRef.current)
-          videoLabelRef.current.textContent = data.label;
-        if (videoSubtitleRef.current)
-          videoSubtitleRef.current.textContent = data.subtitle;
-        setIsTransitioning(false);
-      }, 8000);
+    timeoutId = setTimeout(() => {
+      incoming.removeEventListener("canplay", onCanPlay);
+      incoming.removeEventListener("canplaythrough", onCanPlay);
+      finishTransition();
+    }, 8000);
+  }, []);
 
-      const cleanup = () => {
-        clearTimeout(timeout);
-        incoming.removeEventListener("canplay", onCanPlay);
-        incoming.removeEventListener("canplaythrough", onCanPlay);
-      };
-
-      incoming.addEventListener("transitionend", () => cleanup(), {
-        once: true,
-      });
-    },
-    [
-      activeVideoKey,
-      isTransitioning,
-      currentVideoElement,
-      inactiveVideoElement,
-    ],
-  );
+  // Sync switchVideoRef
+  useEffect(() => {
+    switchVideoRef.current = switchVideo;
+  }, [switchVideo]);
 
   // Observer para seções
   useEffect(() => {
@@ -515,7 +482,7 @@ const CardapioBase: React.FC = () => {
 
     sectionElements.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
-  }, [switchVideo, activeVideoKey]);
+  }, [switchVideo, activeVideoKey, sections]);
 
   // Observer para itens do menu
   useEffect(() => {
@@ -534,16 +501,16 @@ const CardapioBase: React.FC = () => {
 
     items.forEach((item) => itemObserver.observe(item));
     return () => itemObserver.disconnect();
-  }, []);
+  }, [sections]);
 
-  const updateNavDots = (sectionId: string) => {
+  function updateNavDots(sectionId: string) {
     const dots = document.querySelectorAll(`.${styles["nav-dot"]}`);
     dots.forEach((dot) => {
       const target = dot.getAttribute("data-target");
       if (target === sectionId) dot.classList.add(styles.active);
       else dot.classList.remove(styles.active);
     });
-  };
+  }
 
   const handleDotClick = (targetId: string) => {
     const section = document.getElementById(targetId);

@@ -4,3 +4,9 @@ POST /api/auth/login/validate 200 14 - 3.280 ms {}
 GET /api/produtos 200 2 - 5.029 ms -
 POST /api/auth/login/validate 200 14 - 0.753 ms {}
 GET /api/produtos 304 - - 2.718 ms -
+GET /api/sessoes 200 2 - 57.312 ms -
+GET /api/sessoes 200 2 - 2.076 ms -
+POST /api/auth/login/validate 200 14 - 3.969 ms {}
+GET /api/produtos 200 2 - 9.756 ms -
+POST /api/auth/login/validate 200 14 - 1.572 ms {}
+GET /api/produtos 304 - - 2.852 ms -
