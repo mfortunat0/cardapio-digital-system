@@ -27,12 +27,12 @@ export class SessaoController {
 
   static async create(req: Request, res: Response) {
     try {
-      const { nome, midiaUrl = "" } = req.body;
+      const { nome, subtitulo, midiaUrl = "" } = req.body;
       if (!nome) {
         return res.status(400).json({ error: "Nome é obrigatório" });
       }
 
-      const sessao = await SessaoService.create({ nome, midiaUrl });
+      const sessao = await SessaoService.create({ nome, subtitulo, midiaUrl });
 
       // Emitir evento via Socket.io
       const io = getSocket();

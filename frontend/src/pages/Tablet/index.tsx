@@ -1,104 +1,15 @@
-// src/pages/CardapioBase/CardapioBase.tsx
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import styles from "./index.module.css";
 import { apiGetSessoes } from "../../util/api";
 import { socket } from "../../util/socket";
-
-// ==================== TIPOS ====================
-export interface MenuItem {
-  id: string;
-  nome: string;
-  descricao: string;
-  preco: string;
-  tags: string[];
-  imagens?: string[];
-}
-
-export interface MenuSection {
-  id: string;
-  titulo: string;
-  subtitulo: string;
-  videoKey: string;
-  items: MenuItem[];
-}
-
-interface VideoData {
-  src: string;
-  poster: string;
-  label: string;
-  subtitle: string;
-}
-
-// ==================== IMAGENS PARA OS PRODUTOS ====================
-const FOOD_IMAGES = [
-  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1565299507177-b0ac66763828?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1574482620811-1aa16ffe3aa2?auto=format&fit=crop&w=600&q=80",
-];
-
-const getRandomImages = (seed: string, count = 4): string[] => {
-  const hash = seed
-    .split("")
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const start = hash % (FOOD_IMAGES.length - count);
-  return Array.from(
-    { length: count },
-    (_, i) => FOOD_IMAGES[(start + i) % FOOD_IMAGES.length],
-  );
-};
-
-// ==================== DADOS DE VÍDEO E MOCK ====================
-const getDefaultVideoData = (
-  name: string,
-): { src: string; poster: string; subtitle: string } => {
-  const normalized = name.toLowerCase();
-  if (normalized.includes("prato") || normalized.includes("principal")) {
-    return {
-      src: "https://videos.pexels.com/video-files/4761687/4761687-sd_640_360_24fps.mp4",
-      poster:
-        "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80",
-      subtitle: "les plats",
-    };
-  }
-  if (normalized.includes("entrada")) {
-    return {
-      src: "https://videos.pexels.com/video-files/4065393/4065393-sd_640_360_25fps.mp4",
-      poster:
-        "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1200&q=80",
-      subtitle: "pour commencer",
-    };
-  }
-  if (normalized.includes("sobremesa") || normalized.includes("doce")) {
-    return {
-      src: "https://videos.pexels.com/video-files/4107551/4107551-sd_640_360_25fps.mp4",
-      poster:
-        "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=1200&q=80",
-      subtitle: "les desserts",
-    };
-  }
-  return {
-    src: "https://videos.pexels.com/video-files/4761687/4761687-sd_640_360_24fps.mp4",
-    poster:
-      "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=80",
-    subtitle: "les suggestions",
-  };
-};
+import type { MenuItem, MenuSection, VideoData } from "../../type";
 
 interface ModalCarouselProps {
   item: MenuItem | null;
   onClose: () => void;
 }
 
-const ModalCarousel: React.FC<ModalCarouselProps> = ({ item, onClose }) => {
+export function ModalCarousel({ item, onClose }: ModalCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const images = item?.imagens || [];
 
@@ -153,18 +64,15 @@ const ModalCarousel: React.FC<ModalCarouselProps> = ({ item, onClose }) => {
       </div>
     </div>
   );
-};
+}
 
-// ==================== COMPONENTE PRINCIPAL ====================
-const CardapioBase: React.FC = () => {
+export function CardapioBase() {
   const [sections, setSections] = useState<MenuSection[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [activeVideoKey, setActiveVideoKey] = useState<string>("");
-  const [activeSectionId, setActiveSectionId] = useState<string>("");
   const [videoData, setVideoData] = useState<Record<string, VideoData>>({});
   const hasInitializedRef = useRef(false);
 
-  // Refs para vídeos
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
   const posterImgRef = useRef<HTMLImageElement>(null);
@@ -179,7 +87,6 @@ const CardapioBase: React.FC = () => {
   const [inactiveVideoElement, setInactiveVideoElement] =
     useState<HTMLVideoElement | null>(null);
 
-  // Refs to avoid stale closures
   const isTransitioningRef = useRef(false);
   const activeVideoKeyRef = useRef("");
   const pendingVideoKeyRef = useRef<string | null>(null);
@@ -188,7 +95,6 @@ const CardapioBase: React.FC = () => {
   const videoDataRef = useRef<Record<string, VideoData>>({});
   const switchVideoRef = useRef<(key: string) => void>(() => {});
 
-  // Keep refs synchronized
   useEffect(() => {
     isTransitioningRef.current = isTransitioning;
     activeVideoKeyRef.current = activeVideoKey;
@@ -209,12 +115,10 @@ const CardapioBase: React.FC = () => {
       const serverUrl = import.meta.env.VITE_SERVER_API || "";
 
       const mappedSections: MenuSection[] = sessoesData.map((sessao) => {
-        const defaults = getDefaultVideoData(sessao.nome);
-
         return {
           id: sessao.id,
           titulo: sessao.nome,
-          subtitulo: defaults.subtitle,
+          subtitulo: sessao.subtitulo,
           videoKey: sessao.id,
           items: (sessao.produtos || []).map((produto) => {
             let parsedImages: string[] = [];
@@ -233,7 +137,7 @@ const CardapioBase: React.FC = () => {
                 ? parsedImages.map((img) =>
                     img.startsWith("http") ? img : `${serverUrl}${img}`,
                   )
-                : getRandomImages(produto.nome);
+                : [];
 
             let tags: string[] = [];
             if (typeof produto.tags === "string" && produto.tags) {
@@ -249,6 +153,7 @@ const CardapioBase: React.FC = () => {
               id: produto.id,
               nome: produto.nome,
               descricao: produto.descricao,
+              subtitulo: sessao.subtitulo,
               preco: produto.preco.toLocaleString("pt-BR", {
                 style: "currency",
                 currency: "BRL",
@@ -262,14 +167,12 @@ const CardapioBase: React.FC = () => {
 
       const newVideoData: Record<string, VideoData> = {};
       sessoesData.forEach((sessao) => {
-        const defaults = getDefaultVideoData(sessao.nome);
+        // const defaults = getDefaultVideoData(sessao.nome);
         newVideoData[sessao.id] = {
-          src: sessao.midiaUrl
-            ? `${serverUrl}${sessao.midiaUrl}`
-            : defaults.src,
-          poster: defaults.poster,
+          src: sessao.midiaUrl ? `${serverUrl}${sessao.midiaUrl}` : "",
+          poster: "",
           label: sessao.nome,
-          subtitle: defaults.subtitle,
+          subtitle: sessao.subtitulo,
         };
       });
 
@@ -280,13 +183,84 @@ const CardapioBase: React.FC = () => {
     }
   }, []);
 
-  // Carregar dados na inicialização
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadData();
-  }, [loadData]);
+    const loadDataOnStartup = async () => {
+      try {
+        const sessoesData = await apiGetSessoes();
+        const serverUrl = import.meta.env.VITE_SERVER_API || "";
 
-  // Socket listener para atualizações em tempo real
+        const mappedSections: MenuSection[] = sessoesData.map((sessao) => {
+          return {
+            id: sessao.id,
+            titulo: sessao.nome,
+            subtitulo: sessao.subtitulo,
+            videoKey: sessao.id,
+            items: (sessao.produtos || []).map((produto) => {
+              let parsedImages: string[] = [];
+              if (typeof produto.midiaUrl === "string") {
+                try {
+                  parsedImages = JSON.parse(produto.midiaUrl);
+                } catch {
+                  parsedImages = [];
+                }
+              } else if (Array.isArray(produto.midiaUrl)) {
+                parsedImages = produto.midiaUrl;
+              }
+
+              const imagens =
+                parsedImages.length > 0
+                  ? parsedImages.map((img) =>
+                      img.startsWith("http") ? img : `${serverUrl}${img}`,
+                    )
+                  : [];
+
+              let tags: string[] = [];
+              if (typeof produto.tags === "string" && produto.tags) {
+                tags = produto.tags
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter(Boolean);
+              } else if (Array.isArray(produto.tags)) {
+                tags = produto.tags;
+              }
+
+              return {
+                id: produto.id,
+                nome: produto.nome,
+                descricao: produto.descricao,
+                subtitulo: sessao.subtitulo,
+                preco: produto.preco.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                }),
+                tags,
+                imagens,
+              };
+            }),
+          };
+        });
+
+        const newVideoData: Record<string, VideoData> = {};
+        sessoesData.forEach((sessao) => {
+          // const defaults = getDefaultVideoData(sessao.nome);
+          newVideoData[sessao.id] = {
+            src: sessao.midiaUrl ? `${serverUrl}${sessao.midiaUrl}` : "",
+            poster: "",
+            label: sessao.nome,
+            subtitle: sessao.subtitulo,
+          };
+        });
+
+        setVideoData(newVideoData);
+        setSections(mappedSections);
+      } catch (error) {
+        console.error("Erro ao carregar dados do menu:", error);
+      }
+    };
+
+    loadDataOnStartup();
+  }, []);
+
   useEffect(() => {
     socket.on("reload-sessoes", loadData);
     socket.on("reload-produtos", loadData);
@@ -297,7 +271,6 @@ const CardapioBase: React.FC = () => {
     };
   }, [loadData]);
 
-  // Inicializa vídeos
   useEffect(() => {
     if (sections.length === 0 || hasInitializedRef.current) return;
 
@@ -338,7 +311,6 @@ const CardapioBase: React.FC = () => {
     videoA.addEventListener("playing", onPlay);
 
     setActiveVideoKey(firstSection.id);
-    setActiveSectionId(firstSection.id);
 
     return () => videoA.removeEventListener("playing", onPlay);
   }, [sections, videoData]);
@@ -433,12 +405,10 @@ const CardapioBase: React.FC = () => {
     }, 8000);
   }, []);
 
-  // Sync switchVideoRef
   useEffect(() => {
     switchVideoRef.current = switchVideo;
   }, [switchVideo]);
 
-  // Observer para seções
   useEffect(() => {
     const menuPanel = menuPanelRef.current;
     if (!menuPanel) return;
@@ -466,11 +436,8 @@ const CardapioBase: React.FC = () => {
         if (mostVisibleSection != null && maxRatio > 0.08) {
           const el = mostVisibleSection as Element;
           const videoKey = el.getAttribute("data-video");
-          const sectionId = (el as HTMLElement).id;
           if (videoKey && videoKey !== activeVideoKey) {
             switchVideo(videoKey);
-            setActiveSectionId(sectionId);
-            updateNavDots(sectionId);
           }
         }
       },
@@ -503,28 +470,6 @@ const CardapioBase: React.FC = () => {
     return () => itemObserver.disconnect();
   }, [sections]);
 
-  function updateNavDots(sectionId: string) {
-    const dots = document.querySelectorAll(`.${styles["nav-dot"]}`);
-    dots.forEach((dot) => {
-      const target = dot.getAttribute("data-target");
-      if (target === sectionId) dot.classList.add(styles.active);
-      else dot.classList.remove(styles.active);
-    });
-  }
-
-  const handleDotClick = (targetId: string) => {
-    const section = document.getElementById(targetId);
-    if (section) {
-      section.scrollIntoView({ behavior: "smooth", block: "start" });
-      const videoKey = section.getAttribute("data-video");
-      if (videoKey && videoKey !== activeVideoKey) {
-        switchVideo(videoKey);
-        setActiveSectionId(targetId);
-        updateNavDots(targetId);
-      }
-    }
-  };
-
   const handleItemClick = (item: MenuItem) => {
     setSelectedItem(item);
   };
@@ -545,6 +490,10 @@ const CardapioBase: React.FC = () => {
             loop
             playsInline
             preload="auto"
+            onClick={() => {
+              alert("asdas");
+              switchVideo(activeVideoKey + 1);
+            }}
           />
           <video
             ref={videoBRef}
@@ -567,7 +516,7 @@ const CardapioBase: React.FC = () => {
           ></div>
           <div className={styles["video-overlay"]}>
             <span ref={videoLabelRef} className={styles["video-section-label"]}>
-              Pratos Principais
+              {videoData[activeVideoKey]?.label}
             </span>
             <div className={styles["video-section-indicator"]}>
               <span className={styles.dot}></span>
@@ -575,7 +524,7 @@ const CardapioBase: React.FC = () => {
                 ref={videoSubtitleRef}
                 className={styles["current-section-name"]}
               >
-                les plats
+                {videoData[activeVideoKey]?.subtitle}
               </span>
             </div>
           </div>
@@ -646,7 +595,7 @@ const CardapioBase: React.FC = () => {
       </div>
 
       {/* Navegação lateral (dots) */}
-      <div className={styles["section-nav-dots"]}>
+      {/* <div className={styles["section-nav-dots"]}>
         {sections.map((section) => (
           <div
             key={section.id}
@@ -659,7 +608,7 @@ const CardapioBase: React.FC = () => {
             </span>
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* Modal Carrossel */}
       {selectedItem && (
@@ -667,6 +616,6 @@ const CardapioBase: React.FC = () => {
       )}
     </div>
   );
-};
+}
 
 export default CardapioBase;

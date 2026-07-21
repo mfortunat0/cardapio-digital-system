@@ -106,15 +106,17 @@ export const apiCreateSessao = async ({
   nome,
   token,
   midiaUrl = "",
+  subtitulo,
 }: {
   nome: string;
   token: string;
   midiaUrl?: string;
+  subtitulo: string;
 }) => {
   try {
     const response = await api.post(
       "/sessoes",
-      { nome, midiaUrl },
+      { nome, subtitulo, midiaUrl },
       { headers: { Authorization: `Bearer ${token}` } },
     );
     socket.emit("request-reload-sessoes");
@@ -129,17 +131,19 @@ export const apiUpdateSessao = async ({
   id,
   nome,
   midiaUrl = "",
+  subtitulo,
   token,
 }: {
   id: string;
   nome: string;
+  subtitulo: string;
   midiaUrl: string;
   token: string;
 }) => {
   try {
     const response = await api.put(
       `/sessoes/${id}`,
-      { nome, midiaUrl },
+      { nome, subtitulo, midiaUrl },
       { headers: { Authorization: `Bearer ${token}` } },
     );
     socket.emit("request-reload-sessoes");

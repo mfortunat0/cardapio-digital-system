@@ -38,6 +38,7 @@ export function Admin() {
   const [produtoEditando, setProdutoEditando] = useState<Produto | null>(null);
 
   const [sessaoNome, setSessaoNome] = useState<string>("");
+  const [sessaoSubtitulo, setSessaoSubtitulo] = useState<string>("");
   const [sessaoMidiaUrl, setSessaoMidiaUrl] = useState<FileWithPreview>();
 
   const [produtoNome, setProdutoNome] = useState<string>("");
@@ -77,6 +78,7 @@ export function Admin() {
   const abrirModalSessao = (sessao?: Sessao) => {
     setSessaoEditando(sessao || null);
     setSessaoNome(sessao?.nome || "");
+    setSessaoSubtitulo(sessao?.subtitulo || "");
     setSessaoMidiaUrl({
       preview: {
         url: sessao?.midiaUrl
@@ -266,12 +268,14 @@ export function Admin() {
       await apiUpdateSessao({
         id: sessaoEditando.id,
         nome: sessaoNome.trim(),
+        subtitulo: sessaoSubtitulo.trim(),
         midiaUrl: finalMidiaUrl,
         token,
       });
     } else {
       await apiCreateSessao({
         nome: sessaoNome.trim(),
+        subtitulo: sessaoSubtitulo.trim(),
         midiaUrl: finalMidiaUrl,
         token,
       });
@@ -563,6 +567,16 @@ export function Admin() {
                       type="text"
                       value={sessaoNome}
                       onChange={(e) => setSessaoNome(e.target.value)}
+                      required
+                      placeholder="Ex: Pratos Principais"
+                    />
+                  </div>
+                  <div className={styles["form-group"]}>
+                    <label>Subtítulo da Sessão</label>
+                    <input
+                      type="text"
+                      value={sessaoSubtitulo}
+                      onChange={(e) => setSessaoSubtitulo(e.target.value)}
                       required
                       placeholder="Ex: Pratos Principais"
                     />

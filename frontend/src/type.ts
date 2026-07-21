@@ -1,6 +1,7 @@
 export interface Sessao {
   id: string;
   nome: string;
+  subtitulo: string;
   createdAt: string;
   updatedAt: string;
   produtos: Produto[];
@@ -27,4 +28,28 @@ export interface FileWithPreview {
     rawUrl?: string;
     type: string;
   };
+}
+
+export interface MenuItem {
+  id: string;
+  nome: string;
+  descricao: string;
+  preco: string;
+  tags: string[];
+  imagens?: string[];
+}
+
+export interface MenuSection {
+  id: string;
+  titulo: string;
+  subtitulo: string;
+  videoKey: string;
+  items: MenuItem[];
+}
+
+export interface VideoData {
+  src: string;
+  poster: string;
+  label: string;
+  subtitle: string;
 }
