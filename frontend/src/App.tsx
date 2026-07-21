@@ -7,7 +7,7 @@ import Tablet from "./pages/Tablet";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<CardapioFora />} />
+      <Route path="/outside" element={<CardapioFora />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/login" element={<Login />} />
       <Route path="/tablet" element={<Tablet />} />
